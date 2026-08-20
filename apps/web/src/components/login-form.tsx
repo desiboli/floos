@@ -3,14 +3,15 @@ import { Icons } from "@floos/ui/components/icons";
 import { Link } from "@tanstack/react-router";
 
 import { authClient } from "@/lib/auth-client";
+import { m } from "@/paraglide/messages.js";
 
 export default function LoginForm() {
   return (
     <div className="w-full max-w-sm flex flex-col h-full">
       <div className="space-y-8 flex-1 flex flex-col justify-center">
         <div className="space-y-2 text-center">
-          <h2 className="text-2xl font-heading">Welcome to Floos</h2>
-          <p className="text-sm text-muted-foreground">Sign in or create an account to continue</p>
+          <h2 className="text-2xl font-heading">{m.login_title()}</h2>
+          <p className="text-sm text-muted-foreground">{m.login_subtitle()}</p>
         </div>
         <Button
           onClick={() => {
@@ -21,18 +22,18 @@ export default function LoginForm() {
           }}
         >
           <Icons.google className="size-4" />
-          Continue with Google
+          {m.login_button_google()}
         </Button>
       </div>
 
       <p className="text-sm text-muted-foreground text-center">
-        By signing in you agree to our{" "}
+        {m.login_terms_of_service_text()}{" "}
         <Link to="/terms" className="text-primary underline underline-offset-4 hover:no-underline">
-          Terms of service
+          {m.login_terms_of_service_link()}
         </Link>{" "}
         &{" "}
         <Link to="/policy" className="text-primary underline underline-offset-4 hover:no-underline">
-          Privacy policy
+          {m.login_privacy_policy_link()}
         </Link>
       </p>
     </div>

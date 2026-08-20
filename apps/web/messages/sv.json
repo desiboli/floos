@@ -1,0 +1,9 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "login_title": "Välkommen till Floos",
+  "login_subtitle": "Logga in eller skapa ett konto för att fortsätta",
+  "login_button_google": "Logga in med Google",
+  "login_terms_of_service_text": "Genom att logga in godkänner du våra",
+  "login_terms_of_service_link": "Användarvillkor",
+  "login_privacy_policy_link": "Integritetspolicy"
+}
