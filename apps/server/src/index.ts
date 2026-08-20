@@ -18,7 +18,11 @@ const identifyUser = createAuthMiddleware(auth as BetterAuthInstance, {
 
 const app = new Hono<EvlogVariables>();
 
-app.use(evlog({ drain: process.env.NODE_ENV === "production" ? undefined : createFsDrain() }));
+app.use(
+  evlog({
+    drain: process.env.NODE_ENV === "production" ? undefined : createFsDrain(),
+  }),
+);
 app.use("*", async (c, next) => {
   await identifyUser(c.get("log"), c.req.raw.headers, c.req.path);
   await next();
