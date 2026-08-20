@@ -1,4 +1,5 @@
 import { Button } from "@floos/ui/components/button";
+import { FieldGroup } from "@floos/ui/components/field";
 import { Input } from "@floos/ui/components/input";
 import { Label } from "@floos/ui/components/label";
 import { useForm } from "@tanstack/react-form";
@@ -56,18 +57,23 @@ export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () 
   }
 
   return (
-    <div className="mx-auto w-full mt-10 max-w-md p-6">
-      <h1 className="mb-6 text-center text-3xl font-bold">Create Account</h1>
-
+    <>
       <form
         onSubmit={(e) => {
           e.preventDefault();
           e.stopPropagation();
           form.handleSubmit();
         }}
-        className="space-y-4"
+        className="flex flex-col gap-6"
       >
-        <div>
+        <FieldGroup>
+          <div className="flex flex-col items-center gap-1 text-center">
+            <h1 className="text-2xl font-bold font-heading">Create Account</h1>
+            <p className="text-sm text-balance text-muted-foreground">
+              Enter your email below to create an account
+            </p>
+          </div>
+
           <form.Field name="name">
             {(field) => (
               <div className="space-y-2">
@@ -87,9 +93,7 @@ export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () 
               </div>
             )}
           </form.Field>
-        </div>
 
-        <div>
           <form.Field name="email">
             {(field) => (
               <div className="space-y-2">
@@ -110,9 +114,7 @@ export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () 
               </div>
             )}
           </form.Field>
-        </div>
 
-        <div>
           <form.Field name="password">
             {(field) => (
               <div className="space-y-2">
@@ -133,17 +135,17 @@ export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () 
               </div>
             )}
           </form.Field>
-        </div>
 
-        <form.Subscribe
-          selector={(state) => ({ canSubmit: state.canSubmit, isSubmitting: state.isSubmitting })}
-        >
-          {({ canSubmit, isSubmitting }) => (
-            <Button type="submit" className="w-full" disabled={!canSubmit || isSubmitting}>
-              {isSubmitting ? "Submitting..." : "Sign Up"}
-            </Button>
-          )}
-        </form.Subscribe>
+          <form.Subscribe
+            selector={(state) => ({ canSubmit: state.canSubmit, isSubmitting: state.isSubmitting })}
+          >
+            {({ canSubmit, isSubmitting }) => (
+              <Button type="submit" className="w-full" disabled={!canSubmit || isSubmitting}>
+                {isSubmitting ? "Submitting..." : "Sign Up"}
+              </Button>
+            )}
+          </form.Subscribe>
+        </FieldGroup>
       </form>
 
       <div className="mt-4 text-center">
@@ -155,6 +157,6 @@ export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () 
           Already have an account? Sign In
         </Button>
       </div>
-    </div>
+    </>
   );
 }
