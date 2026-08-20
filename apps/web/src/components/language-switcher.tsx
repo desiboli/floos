@@ -30,7 +30,7 @@ export function LanguageSwitcher() {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger render={<Button variant="outline" size="sm" />}>
+      <DropdownMenuTrigger render={<Button variant="outline" />}>
         <IconLanguage data-icon="inline-start" />
         {localeLabels[currentLocale]}
       </DropdownMenuTrigger>

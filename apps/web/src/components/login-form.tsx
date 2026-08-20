@@ -25,17 +25,6 @@ export default function LoginForm() {
           {m.login_button_google()}
         </Button>
       </div>
-
-      <p className="text-sm text-muted-foreground text-center">
-        {m.login_terms_of_service_text()}{" "}
-        <Link to="/terms" className="text-primary underline underline-offset-4 hover:no-underline">
-          {m.login_terms_of_service_link()}
-        </Link>{" "}
-        &{" "}
-        <Link to="/policy" className="text-primary underline underline-offset-4 hover:no-underline">
-          {m.login_privacy_policy_link()}
-        </Link>
-      </p>
     </div>
   );
 }

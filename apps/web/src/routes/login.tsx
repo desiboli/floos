@@ -1,10 +1,13 @@
 import { Icons } from "@floos/ui/components/icons";
 import Silk from "@floos/ui/components/silk";
 import { createFileRoute } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 
 import { LanguageSwitcher } from "@/components/language-switcher";
 import LoginForm from "@/components/login-form";
+import { ModeToggle } from "@/components/mode-toggle";
+import { m } from "@/paraglide/messages.js";
 
 export const Route = createFileRoute("/login")({
   component: RouteComponent,
@@ -27,19 +30,30 @@ function RouteComponent() {
         </div>
       </div>
       <div className="flex flex-col gap-4 p-4">
-        <div className="flex justify-end">
+        <div className="flex justify-end gap-2">
           <LanguageSwitcher />
+          <ModeToggle />
         </div>
-        <div className="flex flex-1 items-center justify-center">
-          {/* <div className="w-full max-w-xs"> */}
+        <div className="flex flex-col gap-4 flex-1 items-center justify-center">
           <LoginForm />
-          {/* {showSignIn ? (
-              <SignInForm onSwitchToSignUp={() => setShowSignIn(false)} />
-            ) : (
-              <SignUpForm onSwitchToSignIn={() => setShowSignIn(true)} />
-            )} */}
-          {/* </div> */}
         </div>
+
+        <p className="text-sm text-muted-foreground text-center my-4">
+          {m.login_terms_of_service_text()}{" "}
+          <Link
+            to="/terms"
+            className="text-primary underline underline-offset-4 hover:no-underline"
+          >
+            {m.login_terms_of_service_link()}
+          </Link>{" "}
+          &{" "}
+          <Link
+            to="/policy"
+            className="text-primary underline underline-offset-4 hover:no-underline"
+          >
+            {m.login_privacy_policy_link()}
+          </Link>
+        </p>
       </div>
     </div>
   );
