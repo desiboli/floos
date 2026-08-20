@@ -9,7 +9,7 @@ export default function LoginForm() {
     <div className="w-full max-w-sm flex flex-col h-full">
       <div className="space-y-8 flex-1 flex flex-col justify-center">
         <div className="space-y-2 text-center">
-          <h2 className="text-2xl font-bold font-heading">Welcome to Floos</h2>
+          <h2 className="text-2xl font-heading">Welcome to Floos</h2>
           <p className="text-sm text-muted-foreground">Sign in or create an account to continue</p>
         </div>
         <Button
