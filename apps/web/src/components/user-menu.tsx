@@ -1,3 +1,4 @@
+import { Avatar, AvatarFallback, AvatarImage } from "@floos/ui/components/avatar";
 import { Button } from "@floos/ui/components/button";
 import {
   DropdownMenu,
@@ -8,10 +9,21 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@floos/ui/components/dropdown-menu";
+import { Icons } from "@floos/ui/components/icons";
 import { Skeleton } from "@floos/ui/components/skeleton";
 import { Link, useNavigate } from "@tanstack/react-router";
 
 import { authClient } from "@/lib/auth-client";
+
+function getInitials(name: string | null | undefined) {
+  if (!name) return "";
+
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "";
+  if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+
+  return `${parts[0].charAt(0)}${parts[parts.length - 1].charAt(0)}`.toUpperCase();
+}
 
 export default function UserMenu() {
   const navigate = useNavigate();
@@ -31,14 +43,32 @@ export default function UserMenu() {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger render={<Button variant="outline" />}>
-        {session.user.name}
-      </DropdownMenuTrigger>
-      <DropdownMenuContent className="bg-card">
+      <DropdownMenuTrigger
+        render={
+          <Button variant="ghost" size="icon" className="rounded-full">
+            <Avatar>
+              <AvatarImage
+                src={session.user.image ?? undefined}
+                alt={session.user.name ?? undefined}
+              />
+              <AvatarFallback>{getInitials(session.user.name)}</AvatarFallback>
+            </Avatar>
+          </Button>
+        }
+      />
+      {/* {session.user.name}
+      </DropdownMenuTrigger> */}
+      <DropdownMenuContent className="bg-card w-fit" align="start">
         <DropdownMenuGroup>
-          <DropdownMenuLabel>My Account</DropdownMenuLabel>
+          <DropdownMenuLabel className="flex flex-col gap-0.5">
+            <span className="text-foreground font-medium">{session.user.name}</span>
+            <span className="text-[11px]">{session.user.email}</span>
+          </DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem>{session.user.email}</DropdownMenuItem>
+          <DropdownMenuItem render={<Link to="/account" />}>
+            <Icons.settings />
+            Account
+          </DropdownMenuItem>
           <DropdownMenuItem
             variant="destructive"
             onClick={() => {
