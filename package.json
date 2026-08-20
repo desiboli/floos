@@ -1,0 +1,46 @@
+{
+  "name": "floos",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "type": "module",
+  "scripts": {
+    "dev": "vp run -r dev",
+    "build": "vp run -r build",
+    "check-types": "vp run -r check-types",
+    "check": "vp check && vp run -r check-types",
+    "lint": "vp lint",
+    "format": "vp fmt",
+    "staged": "vp staged",
+    "hooks:setup": "vp config",
+    "dev:native": "vp run --filter native dev",
+    "dev:web": "vp run --filter web dev",
+    "dev:server": "vp run --filter server dev",
+    "db:push": "vp run --filter @floos/db db:push",
+    "db:studio": "vp run --filter @floos/db db:studio",
+    "db:generate": "vp run --filter @floos/db db:generate",
+    "db:migrate": "vp run --filter @floos/db db:migrate",
+    "docker:build": "docker compose build",
+    "docker:up": "docker compose up -d --build",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f"
+  },
+  "dependencies": {
+    "@floos/env": "workspace:*",
+    "dotenv": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@floos/config": "workspace:*",
+    "@types/bun": "catalog:",
+    "rolldown": "1.2.0",
+    "typescript": "^6.0.3",
+    "vite-plus": "0.2.6"
+  },
+  "overrides": {
+    "vite": "npm:@voidzero-dev/vite-plus-core@0.2.6"
+  },
+  "packageManager": "pnpm@10.33.4"
+}
