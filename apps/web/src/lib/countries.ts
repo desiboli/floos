@@ -5,43 +5,70 @@
  * - Enable Banking: 30 EEA markets (docs/markets; no UK)
  *
  * Union of both. Exclude sandbox-only codes (e.g. XX).
+ * BG → EUR (Bulgaria joined the euro area on 2026-01-01).
  */
+const COUNTRIES = [
+  { code: "AT", name: "Austria", currency: "EUR" },
+  { code: "BE", name: "Belgium", currency: "EUR" },
+  { code: "BG", name: "Bulgaria", currency: "EUR" },
+  { code: "HR", name: "Croatia", currency: "EUR" },
+  { code: "CY", name: "Cyprus", currency: "EUR" },
+  { code: "CZ", name: "Czech Republic", currency: "CZK" },
+  { code: "DK", name: "Denmark", currency: "DKK" },
+  { code: "EE", name: "Estonia", currency: "EUR" },
+  { code: "FI", name: "Finland", currency: "EUR" },
+  { code: "FR", name: "France", currency: "EUR" },
+  { code: "DE", name: "Germany", currency: "EUR" },
+  { code: "GR", name: "Greece", currency: "EUR" },
+  { code: "HU", name: "Hungary", currency: "HUF" },
+  { code: "IS", name: "Iceland", currency: "ISK" },
+  { code: "IE", name: "Ireland", currency: "EUR" },
+  { code: "IT", name: "Italy", currency: "EUR" },
+  { code: "LV", name: "Latvia", currency: "EUR" },
+  { code: "LI", name: "Liechtenstein", currency: "CHF" },
+  { code: "LT", name: "Lithuania", currency: "EUR" },
+  { code: "LU", name: "Luxembourg", currency: "EUR" },
+  { code: "MT", name: "Malta", currency: "EUR" },
+  { code: "NL", name: "Netherlands", currency: "EUR" },
+  { code: "NO", name: "Norway", currency: "NOK" },
+  { code: "PL", name: "Poland", currency: "PLN" },
+  { code: "PT", name: "Portugal", currency: "EUR" },
+  { code: "RO", name: "Romania", currency: "RON" },
+  { code: "SK", name: "Slovakia", currency: "EUR" },
+  { code: "SI", name: "Slovenia", currency: "EUR" },
+  { code: "ES", name: "Spain", currency: "EUR" },
+  { code: "SE", name: "Sweden", currency: "SEK" },
+  { code: "GB", name: "United Kingdom", currency: "GBP" },
+] as const;
+
+export type CountryCode = (typeof COUNTRIES)[number]["code"];
+export type CurrencyCode = (typeof COUNTRIES)[number]["currency"];
+
 export type Country = {
-  code: string;
+  code: CountryCode;
   name: string;
+  currency: CurrencyCode;
   flag: string;
 };
 
-export const countries: Country[] = [
-  { code: "AT", name: "Austria", flag: "\u{1F1E6}\u{1F1F9}" },
-  { code: "BE", name: "Belgium", flag: "\u{1F1E7}\u{1F1EA}" },
-  { code: "BG", name: "Bulgaria", flag: "\u{1F1E7}\u{1F1EC}" },
-  { code: "HR", name: "Croatia", flag: "\u{1F1ED}\u{1F1F7}" },
-  { code: "CY", name: "Cyprus", flag: "\u{1F1E8}\u{1F1FE}" },
-  { code: "CZ", name: "Czech Republic", flag: "\u{1F1E8}\u{1F1FF}" },
-  { code: "DK", name: "Denmark", flag: "\u{1F1E9}\u{1F1F0}" },
-  { code: "EE", name: "Estonia", flag: "\u{1F1EA}\u{1F1EA}" },
-  { code: "FI", name: "Finland", flag: "\u{1F1EB}\u{1F1EE}" },
-  { code: "FR", name: "France", flag: "\u{1F1EB}\u{1F1F7}" },
-  { code: "DE", name: "Germany", flag: "\u{1F1E9}\u{1F1EA}" },
-  { code: "GR", name: "Greece", flag: "\u{1F1EC}\u{1F1F7}" },
-  { code: "HU", name: "Hungary", flag: "\u{1F1ED}\u{1F1FA}" },
-  { code: "IS", name: "Iceland", flag: "\u{1F1EE}\u{1F1F8}" },
-  { code: "IE", name: "Ireland", flag: "\u{1F1EE}\u{1F1EA}" },
-  { code: "IT", name: "Italy", flag: "\u{1F1EE}\u{1F1F9}" },
-  { code: "LV", name: "Latvia", flag: "\u{1F1F1}\u{1F1FB}" },
-  { code: "LI", name: "Liechtenstein", flag: "\u{1F1F1}\u{1F1EE}" },
-  { code: "LT", name: "Lithuania", flag: "\u{1F1F1}\u{1F1F9}" },
-  { code: "LU", name: "Luxembourg", flag: "\u{1F1F1}\u{1F1FA}" },
-  { code: "MT", name: "Malta", flag: "\u{1F1F2}\u{1F1F9}" },
-  { code: "NL", name: "Netherlands", flag: "\u{1F1F3}\u{1F1F1}" },
-  { code: "NO", name: "Norway", flag: "\u{1F1F3}\u{1F1F4}" },
-  { code: "PL", name: "Poland", flag: "\u{1F1F5}\u{1F1F1}" },
-  { code: "PT", name: "Portugal", flag: "\u{1F1F5}\u{1F1F9}" },
-  { code: "RO", name: "Romania", flag: "\u{1F1F7}\u{1F1F4}" },
-  { code: "SK", name: "Slovakia", flag: "\u{1F1F8}\u{1F1F0}" },
-  { code: "SI", name: "Slovenia", flag: "\u{1F1F8}\u{1F1EE}" },
-  { code: "ES", name: "Spain", flag: "\u{1F1EA}\u{1F1F8}" },
-  { code: "SE", name: "Sweden", flag: "\u{1F1F8}\u{1F1EA}" },
-  { code: "GB", name: "United Kingdom", flag: "\u{1F1EC}\u{1F1E7}" },
+/** Regional-indicator flag from an ISO 3166-1 alpha-2 code. */
+export function flagEmoji(countryCode: string) {
+  if (countryCode.length !== 2) return "";
+  const OFFSET = 0x1f1e6 - 65;
+  return String.fromCodePoint(
+    ...[...countryCode.toUpperCase()].map((c) => OFFSET + c.charCodeAt(0)),
+  );
+}
+
+export const countries: Country[] = COUNTRIES.map((country) => ({
+  ...country,
+  flag: flagEmoji(country.code),
+}));
+
+export const countriesByCode = new Map<string, Country>(
+  countries.map((country) => [country.code, country]),
+);
+export const countryCodes = countries.map((country) => country.code) as [
+  CountryCode,
+  ...CountryCode[],
 ];

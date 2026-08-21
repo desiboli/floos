@@ -1,0 +1,16 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { z } from "zod";
+
+import { OnboardingPage } from "@/features/onboarding";
+
+const STEPS = ["create-space", "connect-bank", "select-accounts", "reconciliation"] as const;
+
+const searchSchema = z.object({
+  s: z.enum(STEPS).default("create-space").catch("create-space"),
+  spaceId: z.string().optional(),
+});
+
+export const Route = createFileRoute("/_auth/onboarding/")({
+  validateSearch: searchSchema,
+  component: OnboardingPage,
+});

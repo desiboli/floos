@@ -1,4 +1,4 @@
-import { Toaster } from "@floos/ui/components/sonner";
+import { Toaster } from "@floos/ui/components/toast";
 import { HeadContent, Outlet, createRootRouteWithContext } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 
@@ -44,7 +44,7 @@ function RootComponent() {
           {/* <Header /> */}
           <Outlet />
         </div>
-        <Toaster richColors />
+        <Toaster />
       </ThemeProvider>
       <TanStackRouterDevtools position="bottom-left" />
     </>

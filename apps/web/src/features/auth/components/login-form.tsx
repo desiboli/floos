@@ -1,6 +1,5 @@
 import { Button } from "@floos/ui/components/button";
 import { Icons } from "@floos/ui/components/icons";
-import { Link } from "@tanstack/react-router";
 
 import { authClient } from "@/lib/auth-client";
 import { m } from "@/paraglide/messages.js";
@@ -17,7 +16,8 @@ export default function LoginForm() {
           onClick={() => {
             authClient.signIn.social({
               provider: "google",
-              callbackURL: "http://localhost:3001/",
+              callbackURL: "/",
+              newUserCallbackURL: "/onboarding?s=create-space",
             });
           }}
         >
