@@ -11,7 +11,7 @@ const router = createRouter({
   defaultPreload: "intent",
   scrollRestoration: true,
   defaultPendingComponent: () => <Loader />,
-  context: {},
+  context: { queryClient },
 });
 
 declare module "@tanstack/react-router" {

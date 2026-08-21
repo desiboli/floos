@@ -8,14 +8,18 @@ export const Route = createFileRoute("/_auth/_app/dashboard")({
 });
 
 function RouteComponent() {
-  const { session, customerState } = Route.useRouteContext();
+  const { session, customerState } = Route.useRouteContext() as ReturnType<
+    typeof Route.useRouteContext
+  > & {
+    customerState?: { activeSubscriptions?: unknown[] };
+  };
 
   const hasProSubscription = (customerState?.activeSubscriptions?.length ?? 0) > 0;
 
   return (
     <div>
       <h1>Dashboard</h1>
-      <p>Welcome {session.data?.user.name}</p>
+      <p>Welcome {session.user.name}</p>
       <p>Plan: {hasProSubscription ? "Pro" : "Free"}</p>
       {hasProSubscription ? (
         <Button onClick={async () => await authClient.customer.portal()}>

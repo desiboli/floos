@@ -1,10 +1,26 @@
 import { Button } from "@floos/ui/components/button";
 import { Icons } from "@floos/ui/components/icons";
+import { getRouteApi } from "@tanstack/react-router";
 
 import { authClient } from "@/lib/auth-client";
+import { sanitizeRedirectPath } from "@/lib/sanitize-redirect";
 import { m } from "@/paraglide/messages.js";
 
+const loginRoute = getRouteApi("/login");
+
 export default function LoginForm() {
+  const { return_to } = loginRoute.useSearch();
+
+  function handleGoogleSignIn() {
+    const origin = window.location.origin;
+
+    authClient.signIn.social({
+      provider: "google",
+      callbackURL: `${origin}${sanitizeRedirectPath(return_to ?? "/")}`,
+      newUserCallbackURL: `${origin}/onboarding?s=create-space`,
+    });
+  }
+
   return (
     <div className="w-full max-w-sm flex flex-col h-full">
       <div className="space-y-8 flex-1 flex flex-col justify-center">
@@ -12,15 +28,7 @@ export default function LoginForm() {
           <h2 className="text-2xl font-heading">{m.login_title()}</h2>
           <p className="text-sm text-muted-foreground">{m.login_subtitle()}</p>
         </div>
-        <Button
-          onClick={() => {
-            authClient.signIn.social({
-              provider: "google",
-              callbackURL: `${window.location.origin}/`,
-              newUserCallbackURL: `${window.location.origin}/onboarding?s=create-space`,
-            });
-          }}
-        >
+        <Button onClick={handleGoogleSignIn}>
           <Icons.google className="size-4" />
           {m.login_button_google()}
         </Button>
