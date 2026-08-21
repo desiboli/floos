@@ -7,6 +7,7 @@ import { useEffect } from "react";
 
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { ModeToggle } from "@/components/mode-toggle";
+import { SelectSpaceDialog } from "@/features/spaces/components/select-space-dialog";
 
 import { ConnectBankForm } from "./connect-bank-form";
 import { CreateSpaceForm } from "./create-space-form";
@@ -68,6 +69,7 @@ export function OnboardingPage() {
       </div>
       <div className="flex flex-col gap-4 p-4 bg-muted dark:bg-background">
         <div className="flex justify-end gap-2">
+          <SelectSpaceDialog />
           <LanguageSwitcher />
           <ModeToggle />
         </div>

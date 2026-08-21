@@ -16,8 +16,8 @@ export default function LoginForm() {
           onClick={() => {
             authClient.signIn.social({
               provider: "google",
-              callbackURL: "/",
-              newUserCallbackURL: "/onboarding?s=create-space",
+              callbackURL: `${window.location.origin}/`,
+              newUserCallbackURL: `${window.location.origin}/onboarding?s=create-space`,
             });
           }}
         >

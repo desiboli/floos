@@ -58,6 +58,21 @@ export async function getActiveSpaceId(db: Database, userId: string) {
   return row?.activeSpaceId ?? null;
 }
 
+export async function getActiveSpace(db: Database, userId: string) {
+  const [row] = await db
+    .select({
+      id: spaces.id,
+      name: spaces.name,
+      country: spaces.country,
+      currency: spaces.currency,
+    })
+    .from(user)
+    .innerJoin(spaces, eq(user.activeSpaceId, spaces.id))
+    .where(eq(user.id, userId));
+
+  return row ?? null;
+}
+
 export async function setActiveSpace(db: Database, userId: string, spaceId: string) {
   const [membership] = await db
     .select({ id: spaceMembers.id })

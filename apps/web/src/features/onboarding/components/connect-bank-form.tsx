@@ -36,6 +36,7 @@ import type { Institution } from "@/features/institutions/services/types";
 
 import { createBankLink, providerLabel } from "@/features/banking/services/api";
 import { useInstitutions } from "@/features/institutions/hooks/use-institutions";
+import { useUserSpaces } from "@/features/spaces/hooks/use-user-spaces";
 import { countries, countriesByCode } from "@/lib/countries";
 
 const routeApi = getRouteApi("/_auth/onboarding/");
@@ -103,8 +104,10 @@ function BankRow({
 
 export function ConnectBankForm() {
   const navigate = routeApi.useNavigate();
-  const [countryCode, setCountryCode] = useState("SE");
+  const { activeSpace } = useUserSpaces();
+  const [countryOverride, setCountryOverride] = useState<string | undefined>(undefined);
   const [searchQuery, setSearchQuery] = useState("");
+  const countryCode = countryOverride ?? activeSpace?.country ?? "SE";
 
   const { data, isPending, isError } = useInstitutions(countryCode);
   const createLink = useMutation({
@@ -150,7 +153,7 @@ export function ConnectBankForm() {
               items={countries}
               value={selectedCountry}
               onValueChange={(country) => {
-                setCountryCode(country?.code ?? "SE");
+                setCountryOverride(country?.code ?? "SE");
                 setSearchQuery("");
               }}
               itemToStringLabel={(country) => `${country.flag} ${country.name} · ${country.code}`}

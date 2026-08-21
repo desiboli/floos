@@ -30,6 +30,7 @@ import { Input } from "@floos/ui/components/input";
 import { Item, ItemContent, ItemDescription, ItemTitle } from "@floos/ui/components/item";
 import { toast } from "@floos/ui/components/toast";
 import { useForm } from "@tanstack/react-form";
+import { useQueryClient } from "@tanstack/react-query";
 import { getRouteApi } from "@tanstack/react-router";
 import { useState } from "react";
 import z from "zod";
@@ -57,6 +58,7 @@ const formSchema = z.object({
 export function CreateSpaceForm() {
   const [isCurrencyOpen, setIsCurrencyOpen] = useState(false);
   const navigate = routeApi.useNavigate();
+  const queryClient = useQueryClient();
 
   const form = useForm({
     defaultValues: {
@@ -79,6 +81,8 @@ export function CreateSpaceForm() {
           type: "success",
           title: "Space created",
         });
+
+        await queryClient.invalidateQueries({ queryKey: ["spaces"] });
 
         await navigate({
           search: (prev) => ({ ...prev, s: "connect-bank", spaceId: id }),
