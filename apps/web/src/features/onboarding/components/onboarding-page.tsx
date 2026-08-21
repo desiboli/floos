@@ -5,6 +5,7 @@ import { getRouteApi } from "@tanstack/react-router";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { ModeToggle } from "@/components/mode-toggle";
 
+import { ConnectBankForm } from "./connect-bank-form";
 import { CreateSpaceForm } from "./create-space-form";
 
 const STEPS = ["create-space", "connect-bank", "select-accounts", "reconciliation"] as const;
@@ -40,6 +41,7 @@ export function OnboardingPage() {
         </div>
         <div className="flex flex-col gap-4 flex-1 items-center justify-center">
           {s === "create-space" && <CreateSpaceForm />}
+          {s === "connect-bank" && <ConnectBankForm />}
         </div>
       </div>
     </div>

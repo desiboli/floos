@@ -30,9 +30,11 @@ import { Input } from "@floos/ui/components/input";
 import { Item, ItemContent, ItemDescription, ItemTitle } from "@floos/ui/components/item";
 import { toast } from "@floos/ui/components/toast";
 import { useForm } from "@tanstack/react-form";
+import { getRouteApi } from "@tanstack/react-router";
 import { useState } from "react";
 import z from "zod";
 
+import { createSpace } from "@/features/spaces";
 import { countries, countriesByCode, countryCodes } from "@/lib/countries";
 import {
   currenciesByCode,
@@ -40,6 +42,8 @@ import {
   getCurrencyForCountry,
   uniqueCurrencies,
 } from "@/lib/currencies";
+
+const routeApi = getRouteApi("/_auth/onboarding/");
 
 const formSchema = z.object({
   spaceName: z
@@ -52,6 +56,7 @@ const formSchema = z.object({
 
 export function CreateSpaceForm() {
   const [isCurrencyOpen, setIsCurrencyOpen] = useState(false);
+  const navigate = routeApi.useNavigate();
 
   const form = useForm({
     defaultValues: {
@@ -63,14 +68,27 @@ export function CreateSpaceForm() {
       onSubmit: formSchema,
     },
     onSubmit: async ({ value }) => {
-      toast.add({
-        title: "You submitted the following values:",
-        description: (
-          <pre className="mt-2 w-[320px] overflow-x-auto rounded-md bg-code p-4 text-code-foreground">
-            <code>{JSON.stringify(value, null, 2)}</code>
-          </pre>
-        ),
-      });
+      try {
+        const { id } = await createSpace({
+          name: value.spaceName,
+          country: value.country,
+          currency: value.baseCurrency,
+        });
+
+        toast.add({
+          type: "success",
+          title: "Space created",
+        });
+
+        await navigate({
+          search: (prev) => ({ ...prev, s: "connect-bank", spaceId: id }),
+        });
+      } catch (error) {
+        toast.add({
+          type: "error",
+          title: error instanceof Error ? error.message : "Failed to create space",
+        });
+      }
     },
   });
 

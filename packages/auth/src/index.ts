@@ -1,6 +1,6 @@
 import { expo } from "@better-auth/expo";
 import { createDb } from "@floos/db";
-import * as schema from "@floos/db/schema/auth";
+import { account, session, user, verification } from "@floos/db/schema";
 import { env } from "@floos/env/server";
 import { polar, checkout, portal } from "@polar-sh/better-auth";
 import { betterAuth } from "better-auth";
@@ -15,7 +15,7 @@ export function createAuth() {
     database: drizzleAdapter(db, {
       provider: "pg",
 
-      schema: schema,
+      schema: { user, session, account, verification },
     }),
     trustedOrigins: [env.CORS_ORIGIN, "floos://", "exp://", "http://localhost:8081"],
     emailAndPassword: {
