@@ -8,6 +8,9 @@ const STEPS = ["create-space", "connect-bank", "select-accounts", "reconciliatio
 const searchSchema = z.object({
   s: z.enum(STEPS).default("create-space").catch("create-space"),
   spaceId: z.string().optional(),
+  bankConnected: z.uuid().optional(),
+  bankError: z.string().optional(),
+  connectionId: z.uuid().optional(),
 });
 
 export const Route = createFileRoute("/_auth/onboarding/")({

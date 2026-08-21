@@ -1,8 +1,8 @@
 {
   "name": "server",
+  "version": "1.0.0",
   "type": "module",
   "main": "src/index.ts",
-  "version": "1.0.0",
   "exports": {
     ".": "./src/index.ts"
   },
@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@floos/auth": "workspace:*",
+    "@floos/banking": "workspace:*",
     "@floos/db": "workspace:*",
     "@floos/env": "workspace:*",
     "@hono/zod-openapi": "^1.6.1",

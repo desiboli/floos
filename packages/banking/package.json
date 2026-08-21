@@ -1,0 +1,26 @@
+{
+  "name": "@floos/banking",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "default": "./src/index.ts"
+    },
+    "./*": {
+      "default": "./src/*.ts"
+    }
+  },
+  "scripts": {
+    "seed:institutions": "bun --env-file=../../apps/server/.env run src/scripts/seed-institutions.ts"
+  },
+  "dependencies": {
+    "@floos/db": "workspace:*",
+    "@floos/env": "workspace:*"
+  },
+  "devDependencies": {
+    "@floos/config": "workspace:*",
+    "@types/bun": "catalog:",
+    "typescript": "^6.0.3"
+  }
+}
