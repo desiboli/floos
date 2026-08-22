@@ -3,7 +3,7 @@ import { Icons } from "@floos/ui/components/icons";
 import { getRouteApi } from "@tanstack/react-router";
 
 import { authClient } from "@/lib/auth-client";
-import { sanitizeRedirectPath } from "@/lib/sanitize-redirect";
+import { sanitizeInviteReturnTo } from "@/lib/sanitize-redirect";
 import { m } from "@/paraglide/messages.js";
 
 const loginRoute = getRouteApi("/login");
@@ -13,11 +13,12 @@ export default function LoginForm() {
 
   function handleGoogleSignIn() {
     const origin = window.location.origin;
+    const invitePath = sanitizeInviteReturnTo(return_to);
 
     authClient.signIn.social({
       provider: "google",
-      callbackURL: `${origin}${sanitizeRedirectPath(return_to ?? "/")}`,
-      newUserCallbackURL: `${origin}/onboarding?s=create-space`,
+      callbackURL: `${origin}${invitePath ?? "/"}`,
+      newUserCallbackURL: `${origin}${invitePath ?? "/onboarding?s=create-space"}`,
     });
   }
 

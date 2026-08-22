@@ -4,7 +4,7 @@ import { z } from "zod";
 import { LoginPage } from "@/features/auth";
 import { spacesQueryOptions } from "@/features/spaces/services/queries";
 import { authClient } from "@/lib/auth-client";
-import { sanitizeRedirectPath } from "@/lib/sanitize-redirect";
+import { sanitizeInviteReturnTo, sanitizeRedirectPath } from "@/lib/sanitize-redirect";
 
 const loginSearchSchema = z.object({
   return_to: z.string().optional(),
@@ -16,6 +16,11 @@ export const Route = createFileRoute("/login")({
     const { data: session } = await authClient.getSession();
     if (!session) {
       return;
+    }
+
+    const invitePath = sanitizeInviteReturnTo(search.return_to);
+    if (invitePath) {
+      throw redirect({ href: invitePath });
     }
 
     const { spaces } = await context.queryClient.ensureQueryData(spacesQueryOptions());

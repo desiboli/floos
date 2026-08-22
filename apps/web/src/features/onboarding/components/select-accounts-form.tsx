@@ -141,7 +141,7 @@ export function SelectAccountsForm({ connectionId }: { connectionId: string }) {
         });
       }
       navigate({
-        search: (prev) => ({ ...prev, s: "reconciliation" }),
+        search: (prev) => ({ ...prev, s: "invite" }),
       });
     },
     onError: (error) => {

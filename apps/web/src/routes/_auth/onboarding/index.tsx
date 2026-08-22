@@ -3,10 +3,14 @@ import { z } from "zod";
 
 import { OnboardingPage } from "@/features/onboarding";
 
-const STEPS = ["create-space", "connect-bank", "select-accounts", "reconciliation"] as const;
+const STEPS = ["create-space", "connect-bank", "select-accounts", "invite"] as const;
 
 const searchSchema = z.object({
-  s: z.enum(STEPS).default("create-space").catch("create-space"),
+  s: z
+    .enum([...STEPS, "reconciliation"])
+    .default("create-space")
+    .catch("create-space")
+    .transform((step) => (step === "reconciliation" ? "invite" : step)),
   spaceId: z.string().optional(),
   bankConnected: z.uuid().optional(),
   bankError: z.string().optional(),

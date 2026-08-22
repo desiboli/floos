@@ -260,7 +260,7 @@ export function ConnectBankForm() {
           variant="ghost"
           onClick={() => {
             navigate({
-              search: (prev) => ({ ...prev, s: "reconciliation" }),
+              search: (prev) => ({ ...prev, s: "invite" }),
             });
           }}
         >

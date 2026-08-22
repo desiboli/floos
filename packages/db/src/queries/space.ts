@@ -73,6 +73,18 @@ export async function getActiveSpace(db: Database, userId: string) {
   return row ?? null;
 }
 
+export async function getSpaceMemberRole(db: Database, spaceId: string, userId: string) {
+  const [row] = await db
+    .select({ role: spaceMembers.role })
+    .from(spaceMembers)
+    .where(and(eq(spaceMembers.userId, userId), eq(spaceMembers.spaceId, spaceId)))
+    .limit(1);
+
+  if (!row) return null;
+  if (row.role === "owner" || row.role === "member") return row.role;
+  return null;
+}
+
 export async function setActiveSpace(db: Database, userId: string, spaceId: string) {
   const [membership] = await db
     .select({ id: spaceMembers.id })

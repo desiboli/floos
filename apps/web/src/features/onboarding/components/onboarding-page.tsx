@@ -12,9 +12,10 @@ import { m } from "@/paraglide/messages.js";
 
 import { ConnectBankForm } from "./connect-bank-form";
 import { CreateSpaceForm } from "./create-space-form";
+import { InviteForm } from "./invite-form";
 import { SelectAccountsForm } from "./select-accounts-form";
 
-const STEPS = ["create-space", "connect-bank", "select-accounts", "reconciliation"] as const;
+const STEPS = ["create-space", "connect-bank", "select-accounts", "invite"] as const;
 
 const routeApi = getRouteApi("/_auth/onboarding/");
 
@@ -91,6 +92,7 @@ export function OnboardingPage() {
               </Button>
             </div>
           ) : null}
+          {s === "invite" && <InviteForm />}
         </div>
       </div>
     </div>

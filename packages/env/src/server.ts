@@ -14,6 +14,12 @@ export const env = createEnv({
     GOOGLE_GENERATIVE_AI_API_KEY: z.string().min(1),
     CORS_ORIGIN: z.url(),
     NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
+    // Resend (invite emails). Set in apps/server/.env — jobs load that file.
+    // Optional in development (job skips send); required in production.
+    RESEND_API_KEY:
+      process.env.NODE_ENV === "production" ? z.string().min(1) : z.string().min(1).optional(),
+    EMAIL_FROM:
+      process.env.NODE_ENV === "production" ? z.string().min(1) : z.string().min(1).optional(),
     TRIGGER_SECRET_KEY: z.string().min(1),
     // GoCardless Bank Account Data (AIS) — not the payments API
     GOCARDLESS_SECRET_ID: z.string().min(1),

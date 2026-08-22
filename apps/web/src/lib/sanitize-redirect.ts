@@ -35,3 +35,19 @@ export function sanitizeRedirectPath(raw: string, fallback = "/"): string {
 
   return decoded;
 }
+
+const INVITE_RETURN_TO = /^\/invite\/[A-Za-z0-9_-]+$/;
+
+/** Allow only `/invite/<token>` as a post-login return path. */
+export function sanitizeInviteReturnTo(raw: string | undefined): string | null {
+  if (!raw) return null;
+
+  const path = sanitizeRedirectPath(raw, "");
+  if (!path) return null;
+
+  const pathname = path.split("?")[0]?.split("#")[0] ?? "";
+  if (!INVITE_RETURN_TO.test(pathname)) return null;
+
+  return pathname;
+}
+
