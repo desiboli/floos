@@ -53,5 +53,8 @@
   "onboarding_select_accounts_try_again": "Try again",
   "onboarding_select_accounts_empty": "This bank returned no accounts.",
   "onboarding_select_accounts_missing_connection": "Missing connection. Start by connecting a bank.",
-  "onboarding_select_accounts_toast_success": "Accounts saved"
+  "onboarding_select_accounts_toast_importing_title": "Importing transactions",
+  "onboarding_select_accounts_toast_importing_description": "This usually takes about a minute. Depending on the bank it can take longer — you can keep going.",
+  "onboarding_select_accounts_toast_import_failed_title": "Accounts saved, but import didn't start",
+  "onboarding_select_accounts_toast_import_failed_description": "You can keep going. Try again later if transactions don't appear."
 }

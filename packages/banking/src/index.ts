@@ -16,4 +16,6 @@ export type {
   AccountType,
   Account,
   GetAccountsRequest,
+  Transaction,
+  GetTransactionsRequest,
 } from "./types";

@@ -43,6 +43,10 @@ lerna-debug.log*
 .turbo
 .nx
 
+# Trigger.dev
+.trigger
+
+
 # Better-T-Stack
 .alchemy
 .vercel

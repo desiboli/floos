@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 
 import type { Database } from "..";
 
@@ -61,6 +61,25 @@ export async function getBankConnectionById(db: Database, id: string, spaceId: s
   return result ?? null;
 }
 
+/** Load a connection by id for system jobs (Trigger). No space scoping. */
+export async function getBankConnectionByIdForSync(db: Database, id: string) {
+  const [result] = await db
+    .select()
+    .from(bankConnections)
+    .where(eq(bankConnections.id, id))
+    .limit(1);
+
+  return result ?? null;
+}
+
+/** Connected bank links for a space — used by the daily bank-sync scheduler. */
+export async function listConnectedBankConnectionIdsBySpace(db: Database, spaceId: string) {
+  return db
+    .select({ id: bankConnections.id })
+    .from(bankConnections)
+    .where(and(eq(bankConnections.spaceId, spaceId), eq(bankConnections.status, "connected")));
+}
+
 export async function getBankConnectionByInstitution(
   db: Database,
   spaceId: string,
@@ -90,6 +109,24 @@ export async function updateBankConnectionStatus(
     .returning();
 
   return result ?? null;
+}
+
+export async function updateBankConnectionLastSyncAt(db: Database, id: string, spaceId: string) {
+  const [result] = await db
+    .update(bankConnections)
+    .set({ lastSyncAt: sql`now()` })
+    .where(and(eq(bankConnections.id, id), eq(bankConnections.spaceId, spaceId)))
+    .returning();
+
+  return result ?? null;
+}
+
+/** Mark a successful sync from a job (id-only, no space scope). */
+export async function touchBankConnectionLastSyncAt(db: Database, connectionId: string) {
+  await db
+    .update(bankConnections)
+    .set({ lastSyncAt: sql`now()` })
+    .where(eq(bankConnections.id, connectionId));
 }
 
 export async function deleteBankConnection(db: Database, id: string, spaceId: string) {

@@ -12,7 +12,8 @@
     }
   },
   "scripts": {
-    "seed:institutions": "bun --env-file=../../apps/server/.env run src/scripts/seed-institutions.ts"
+    "seed:institutions": "bun --env-file=../../apps/server/.env run src/scripts/seed-institutions.ts",
+    "check-types": "tsc --noEmit"
   },
   "dependencies": {
     "@floos/db": "workspace:*",

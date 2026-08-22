@@ -3,9 +3,11 @@ import { api } from "@/lib/api-client";
 import type {
   CommitAccountsInput,
   CommitAccountsResult,
+  ConnectionTransactionsResult,
   CreateBankLinkInput,
   CreateBankLinkResult,
   ProviderAccountsResult,
+  SyncConnectionResult,
   ToggleBankAccountResult,
 } from "./types";
 
@@ -62,6 +64,34 @@ export async function toggleBankAccount(
   if (!res.ok) {
     const body = (await res.json().catch(() => null)) as { error?: string } | null;
     throw new Error(body?.error ?? "Failed to update account");
+  }
+
+  return res.json();
+}
+
+export async function getConnectionTransactions(
+  connectionId: string,
+): Promise<ConnectionTransactionsResult> {
+  const res = await api.banking.connections[":id"].transactions.$get({
+    param: { id: connectionId },
+  });
+
+  if (!res.ok) {
+    const body = (await res.json().catch(() => null)) as { error?: string } | null;
+    throw new Error(body?.error ?? "Failed to fetch transactions");
+  }
+
+  return res.json();
+}
+
+export async function syncBankConnection(connectionId: string): Promise<SyncConnectionResult> {
+  const res = await api.banking.connections[":id"].sync.$post({
+    param: { id: connectionId },
+  });
+
+  if (!res.ok) {
+    const body = (await res.json().catch(() => null)) as { error?: string } | null;
+    throw new Error(body?.error ?? "Failed to queue connection sync");
   }
 
   return res.json();

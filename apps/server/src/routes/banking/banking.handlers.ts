@@ -11,17 +11,24 @@ import {
   getInstitutionById,
   updateBankConnectionLink,
   getBankConnectionById,
+  getEnabledBankAccountsByConnection,
+  listBankTransactionsByConnection,
   updateBankAccountEnabled,
   updateBankConnectionStatus,
 } from "@floos/db/queries";
 import { env } from "@floos/env/server";
+import type { syncConnectionTransactions } from "@floos/jobs";
+import { generateCronTag } from "@floos/jobs/generate-cron-tag";
+import { schedules, tasks } from "@trigger.dev/sdk";
 
 import type { AppRouteHandler } from "../../lib/types";
 import type {
   CallbackRoute,
   CommitAccountsRoute,
   CreateLinkRoute,
+  ListConnectionTransactionsRoute,
   ListProviderAccountsRoute,
+  SyncConnectionRoute,
   ToggleBankAccountRoute,
 } from "./banking.routes";
 
@@ -285,12 +292,115 @@ export const commitAccounts: AppRouteHandler<CommitAccountsRoute> = async (c) =>
     await updateBankConnectionStatus(db, connection.id, activeSpaceId, "connected");
 
     const enabledCount = accounts.filter((account) => account.enabled).length;
+    let importStarted = false;
 
-    return c.json({ count: dbAccounts.length, enabledCount }, HTTPStatusCodes.OK);
+    try {
+      await tasks.trigger<typeof syncConnectionTransactions>("sync-connection-transactions", {
+        connectionId: connection.id,
+        manualSync: true,
+      });
+      importStarted = true;
+    } catch (err) {
+      c.get("log").error(err instanceof Error ? err : new Error("Failed to enqueue transaction sync"));
+    }
+
+    if (connection.provider === "gocardless") {
+      try {
+        await tasks.trigger<typeof syncConnectionTransactions>(
+          "sync-connection-transactions",
+          { connectionId: connection.id, manualSync: true },
+          { delay: "5m" },
+        );
+      } catch (err) {
+        c.get("log").error(
+          err instanceof Error ? err : new Error("Failed to enqueue delayed GoCardless sync"),
+        );
+      }
+    }
+
+    try {
+      await schedules.create({
+        task: "bank-sync-scheduler",
+        cron: generateCronTag(activeSpaceId),
+        timezone: "UTC",
+        externalId: activeSpaceId,
+        deduplicationKey: `${activeSpaceId}-bank-sync-scheduler`,
+      });
+    } catch (err) {
+      c.get("log").error(
+        err instanceof Error ? err : new Error("Failed to create bank sync schedule"),
+      );
+    }
+
+    return c.json({ count: dbAccounts.length, enabledCount, importStarted }, HTTPStatusCodes.OK);
   } catch (err) {
     const message = err instanceof Error ? err.message : "Failed to persist accounts";
     return c.json({ error: message }, HTTPStatusCodes.BAD_REQUEST);
   }
+};
+
+function connectionSyncStatus(
+  connection: { status: string; lastSyncAt: Date | null },
+  enabledAccountCount: number,
+): "syncing" | "ready" | "error" {
+  if (connection.lastSyncAt) return "ready";
+  if (connection.status === "connected" && enabledAccountCount > 0) return "syncing";
+  return "error";
+}
+
+export const listConnectionTransactions: AppRouteHandler<ListConnectionTransactionsRoute> = async (
+  c,
+) => {
+  const user = c.get("user");
+
+  if (!user) {
+    return c.json({ error: "Unauthorized" }, HTTPStatusCodes.UNAUTHORIZED);
+  }
+
+  const activeSpaceId = await getActiveSpaceId(db, user.id);
+
+  if (!activeSpaceId) {
+    return c.json({ error: "No active space set" }, HTTPStatusCodes.BAD_REQUEST);
+  }
+
+  const { id } = c.req.valid("param");
+  const connection = await getBankConnectionById(db, id, activeSpaceId);
+
+  if (!connection) {
+    return c.json({ error: "Connection not found" }, HTTPStatusCodes.NOT_FOUND);
+  }
+
+  const [rows, enabledAccounts] = await Promise.all([
+    listBankTransactionsByConnection(db, {
+      spaceId: activeSpaceId,
+      connectionId: connection.id,
+      limit: 100,
+    }),
+    getEnabledBankAccountsByConnection(db, connection.id),
+  ]);
+
+  return c.json(
+    {
+      status: connectionSyncStatus(connection, enabledAccounts.length),
+      lastSyncAt: connection.lastSyncAt?.toISOString() ?? null,
+      transactions: rows.map((row) => ({
+        id: row.id,
+        date: row.date,
+        amount: Number(row.amount),
+        currency: row.currency,
+        name: row.name,
+        description: row.description,
+        status: row.status === "pending" ? ("pending" as const) : ("posted" as const),
+        method: row.method,
+        counterpartyName: row.counterpartyName,
+        merchantName: row.merchantName,
+        balance: row.balance != null ? Number(row.balance) : null,
+        currencyRate: row.currencyRate != null ? Number(row.currencyRate) : null,
+        currencySource: row.currencySource,
+      })),
+    },
+    HTTPStatusCodes.OK,
+  );
 };
 
 export const toggleBankAccount: AppRouteHandler<ToggleBankAccountRoute> = async (c) => {
@@ -315,4 +425,36 @@ export const toggleBankAccount: AppRouteHandler<ToggleBankAccountRoute> = async 
   }
 
   return c.json({ id: updated.id, enabled: updated.enabled }, HTTPStatusCodes.OK);
+};
+
+export const syncConnection: AppRouteHandler<SyncConnectionRoute> = async (c) => {
+  const user = c.get("user");
+
+  if (!user) {
+    return c.json({ error: "Unauthorized" }, HTTPStatusCodes.UNAUTHORIZED);
+  }
+
+  const activeSpaceId = await getActiveSpaceId(db, user.id);
+
+  if (!activeSpaceId) {
+    return c.json({ error: "No active space set" }, HTTPStatusCodes.BAD_REQUEST);
+  }
+
+  const { id } = c.req.valid("param");
+  const connection = await getBankConnectionById(db, id, activeSpaceId);
+
+  if (!connection) {
+    return c.json({ error: "Connection not found" }, HTTPStatusCodes.NOT_FOUND);
+  }
+
+  if (connection.status !== "connected") {
+    return c.json({ error: "Connection is not connected" }, HTTPStatusCodes.BAD_REQUEST);
+  }
+
+  const handle = await tasks.trigger<typeof syncConnectionTransactions>(
+    "sync-connection-transactions",
+    { connectionId: connection.id, manualSync: true },
+  );
+
+  return c.json({ queued: true as const, runId: handle.id }, HTTPStatusCodes.ACCEPTED);
 };

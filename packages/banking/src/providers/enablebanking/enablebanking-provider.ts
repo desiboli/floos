@@ -7,11 +7,14 @@ import type {
   GetAccountsRequest,
   GetConnectionStatusRequest,
   GetInstitutionsRequest,
+  GetTransactionsRequest,
   Institution,
+  Transaction,
 } from "../../types";
 
 import { EnableBankingApi } from "./enablebanking-api";
-import { transformAccount, transformInstitution } from "./transform";
+import { transformAccount, transformInstitution, transformTransaction } from "./transform";
+import type { EBTransaction } from "./types";
 
 export class EnableBankingProvider implements BankingProvider {
   #api = new EnableBankingApi();
@@ -114,6 +117,92 @@ export class EnableBankingProvider implements BankingProvider {
       }),
     );
   };
+
+  getTransactions = async ({
+    accountId,
+    latest,
+  }: GetTransactionsRequest): Promise<Transaction[]> => {
+    if (latest === true) {
+      return mapTransactions(
+        await this.#fetchAll({
+          accountId,
+          dateFrom: utcDaysAgo(5),
+          dateTo: utcToday(),
+          strategy: "default",
+        }),
+      );
+    }
+
+    const longest = await this.#fetchAll({
+      accountId,
+      dateFrom: utcDaysAgo(730),
+      strategy: "longest",
+    }).catch(() => null);
+
+    if (!longest) {
+      return mapTransactions(await this.#fetchLatestYear(accountId));
+    }
+
+    const mostRecent = longest.reduce<string | undefined>((acc, tx) => {
+      const date = tx.booking_date ?? tx.value_date;
+      if (!date) return acc;
+      return !acc || date > acc ? date : acc;
+    }, undefined);
+
+    if (!mostRecent || mostRecent < utcDaysAgo(7)) {
+      const topUp = await this.#fetchLatestYear(accountId);
+      return mapTransactions([...longest, ...topUp]);
+    }
+
+    return mapTransactions(longest);
+  };
+
+  #fetchLatestYear = (accountId: string) =>
+    this.#fetchAll({
+      accountId,
+      dateFrom: utcDaysAgo(365),
+      dateTo: utcToday(),
+      strategy: "default",
+    });
+
+  /** Paginate until continuation_key is gone. Empty pages with a key still continue. */
+  #fetchAll = async (params: {
+    accountId: string;
+    dateFrom: string;
+    dateTo?: string;
+    strategy: "default" | "longest";
+  }): Promise<EBTransaction[]> => {
+    const all: EBTransaction[] = [];
+    let continuationKey: string | undefined;
+
+    do {
+      const page = await this.#api.getAccountTransactions({
+        ...params,
+        continuationKey,
+      });
+      all.push(...(page.transactions ?? []));
+      continuationKey = page.continuation_key || undefined;
+    } while (continuationKey);
+
+    return all;
+  };
+}
+
+function mapTransactions(raw: EBTransaction[]): Transaction[] {
+  return raw.flatMap((tx) => {
+    const mapped = transformTransaction(tx);
+    return mapped ? [mapped] : [];
+  });
+}
+
+function utcToday(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function utcDaysAgo(days: number): string {
+  const date = new Date();
+  date.setUTCDate(date.getUTCDate() - days);
+  return date.toISOString().slice(0, 10);
 }
 
 function sessionAccountIds(accounts: Array<string | { uid: string }> | undefined): string[] {

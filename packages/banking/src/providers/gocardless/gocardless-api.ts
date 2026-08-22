@@ -5,6 +5,7 @@ import type {
   GCAccountDetails,
   GCBalancesResponse,
   GCInstitution,
+  GCTransactionsResponse,
   RefreshTokenResponse,
   Requisition,
   TokenResponse,
@@ -108,6 +109,32 @@ export class GoCardlessApi {
   /** GET /api/v2/accounts/{id}/balances/ */
   getAccountBalances = async (accountId: string): Promise<GCBalancesResponse> => {
     return this.#request<GCBalancesResponse>(`/api/v2/accounts/${accountId}/balances/`);
+  };
+
+  /**
+   * GET /api/v2/accounts/{id}/transactions/
+   * One call per account — GC rate limits can be as low as ~4 successful account-resource calls/day.
+   * Omit date_from for full history the bank allows.
+   */
+  getAccountTransactions = async (params: {
+    accountId: string;
+    dateFrom?: string;
+    dateTo?: string;
+  }): Promise<GCTransactionsResponse> => {
+    const search = new URLSearchParams();
+    if (params.dateFrom) {
+      search.set("date_from", params.dateFrom);
+    }
+    if (params.dateTo) {
+      search.set("date_to", params.dateTo);
+    }
+
+    const query = search.toString();
+    const suffix = query ? `?${query}` : "";
+
+    return this.#request<GCTransactionsResponse>(
+      `/api/v2/accounts/${params.accountId}/transactions/${suffix}`,
+    );
   };
 
   #request = async <T>(path: string, options: RequestInit = {}): Promise<T> => {

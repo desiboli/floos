@@ -85,3 +85,36 @@ export type GetAccountsRequest = {
   /** GC requisition id or EB session id (stored on bank_connections.accessToken). */
   id: string;
 };
+
+/**
+ * Normalized booked transaction. `id` is persisted as bank_transactions.providerTransactionId.
+ * merchantName is reserved for later enrichment — AIS payloads have MCC, not a merchant name.
+ */
+export type Transaction = {
+  id: string;
+  /** YYYY-MM-DD */
+  date: string;
+  /** Already signed (credits positive, debits negative). */
+  amount: number;
+  currency: string;
+  name: string;
+  description: string | null;
+  status: "posted" | "pending";
+  method: string | null;
+  /** Other party: debtor on credit, creditor on debit. */
+  counterpartyName: string | null;
+  merchantName: string | null;
+  /** Balance after this transaction, already signed as stored. */
+  balance: number | null;
+  currencyRate: number | null;
+  currencySource: string | null;
+};
+
+export type GetTransactionsRequest = {
+  /** Provider-native account id (bank_accounts.account_id). */
+  accountId: string;
+  /** true = ~5 days; false/omit = full history. Providers compute the window. */
+  latest?: boolean;
+  /** Pass through; unused for category (no categorySlug here). */
+  accountType?: AccountType;
+};

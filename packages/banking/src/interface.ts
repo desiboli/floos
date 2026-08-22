@@ -6,7 +6,9 @@ import type {
   GetAccountsRequest,
   GetConnectionStatusRequest,
   GetInstitutionsRequest,
+  GetTransactionsRequest,
   Institution,
+  Transaction,
 } from "./types";
 
 export interface BankingProvider {
@@ -14,6 +16,7 @@ export interface BankingProvider {
   createLink(params: CreateLinkRequest): Promise<CreateLinkResponse>;
   getConnectionStatus(params: GetConnectionStatusRequest): Promise<ConnectionStatus>;
   getAccounts(params: GetAccountsRequest): Promise<Account[]>;
+  getTransactions(params: GetTransactionsRequest): Promise<Transaction[]>;
   /**
    * Enable Banking: exchange callback `code` → session_id.
    * GoCardless does not use this (omit it on that class).

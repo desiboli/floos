@@ -8,6 +8,7 @@ import type {
   EBBalancesResponse,
   EBSessionResponse,
   EBSessionStatus,
+  EBTransactionsResponse,
 } from "./types";
 
 const BASE_URL = "https://api.enablebanking.com";
@@ -120,5 +121,35 @@ export class EnableBankingApi {
   /** GET /accounts/{id}/balances */
   getAccountBalances = async (accountId: string): Promise<EBBalancesResponse> => {
     return this.#request<EBBalancesResponse>(`/accounts/${accountId}/balances`);
+  };
+
+  /**
+   * GET /accounts/{id}/transactions
+   * Keep strategy, status, and dates identical on every page; only continuation_key changes.
+   * Empty `transactions` with a continuation_key still means more pages.
+   */
+  getAccountTransactions = async (params: {
+    accountId: string;
+    dateFrom: string;
+    dateTo?: string;
+    strategy: "default" | "longest";
+    continuationKey?: string;
+  }): Promise<EBTransactionsResponse> => {
+    const search = new URLSearchParams({
+      strategy: params.strategy,
+      transaction_status: "BOOK",
+      date_from: params.dateFrom,
+    });
+
+    if (params.dateTo) {
+      search.set("date_to", params.dateTo);
+    }
+    if (params.continuationKey) {
+      search.set("continuation_key", params.continuationKey);
+    }
+
+    return this.#request<EBTransactionsResponse>(
+      `/accounts/${params.accountId}/transactions?${search.toString()}`,
+    );
   };
 }

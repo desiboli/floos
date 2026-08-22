@@ -7,11 +7,13 @@ import type {
   GetAccountsRequest,
   GetConnectionStatusRequest,
   GetInstitutionsRequest,
+  GetTransactionsRequest,
   Institution,
+  Transaction,
 } from "../../types";
 
 import { GoCardlessApi } from "./gocardless-api";
-import { transformAccount, transformInstitution } from "./transform";
+import { transformAccount, transformInstitution, transformTransaction } from "./transform";
 
 export class GoCardlessProvider implements BankingProvider {
   #api = new GoCardlessApi();
@@ -102,4 +104,23 @@ export class GoCardlessProvider implements BankingProvider {
       }),
     );
   };
+
+  getTransactions = async ({
+    accountId,
+    latest,
+  }: GetTransactionsRequest): Promise<Transaction[]> => {
+    const dateFrom = latest === true ? utcDaysAgo(5) : undefined;
+    const response = await this.#api.getAccountTransactions({ accountId, dateFrom });
+
+    return (response.transactions.booked ?? []).flatMap((raw) => {
+      const tx = transformTransaction(raw);
+      return tx ? [tx] : [];
+    });
+  };
+}
+
+function utcDaysAgo(days: number): string {
+  const date = new Date();
+  date.setUTCDate(date.getUTCDate() - days);
+  return date.toISOString().slice(0, 10);
 }

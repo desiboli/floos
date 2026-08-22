@@ -128,6 +128,7 @@ export const commitAccountsSchema = z.object({
 export const commitAccountsResponseSchema = z.object({
   count: z.number().int().nonnegative(),
   enabledCount: z.number().int().nonnegative(),
+  importStarted: z.boolean(),
 });
 
 export const commitAccounts = createRoute({
@@ -159,6 +160,79 @@ export const commitAccounts = createRoute({
 });
 
 export type CommitAccountsRoute = typeof commitAccounts;
+
+export const syncConnectionResponseSchema = z.object({
+  queued: z.literal(true),
+  runId: z.string(),
+});
+
+export const syncConnection = createRoute({
+  tags,
+  path: "/banking/connections/{id}/sync",
+  method: "post",
+  summary: "Queue a manual full-history sync for a bank connection",
+  request: {
+    params: z.object({
+      id: z.uuid(),
+    }),
+  },
+  responses: {
+    [HTTPStatusCodes.ACCEPTED]: jsonContent(syncConnectionResponseSchema, "Sync job queued"),
+    [HTTPStatusCodes.BAD_REQUEST]: jsonContent(
+      z.object({ error: z.string() }),
+      "No active space or connection not connected",
+    ),
+    [HTTPStatusCodes.UNAUTHORIZED]: jsonContent(z.object({ error: z.string() }), "Unauthorized"),
+    [HTTPStatusCodes.NOT_FOUND]: jsonContent(z.object({ error: z.string() }), "Connection not found"),
+  },
+});
+
+export type SyncConnectionRoute = typeof syncConnection;
+
+export const connectionTransactionSchema = z.object({
+  id: z.uuid(),
+  date: z.string(),
+  amount: z.number(),
+  currency: z.string(),
+  name: z.string(),
+  description: z.string().nullable(),
+  status: z.enum(["posted", "pending"]),
+  method: z.string().nullable(),
+  counterpartyName: z.string().nullable(),
+  merchantName: z.string().nullable(),
+  balance: z.number().nullable(),
+  currencyRate: z.number().nullable(),
+  currencySource: z.string().nullable(),
+});
+
+export const listConnectionTransactionsResponseSchema = z.object({
+  status: z.enum(["syncing", "ready", "error"]),
+  lastSyncAt: z.string().nullable(),
+  transactions: z.array(connectionTransactionSchema),
+});
+
+export const listConnectionTransactions = createRoute({
+  tags,
+  path: "/banking/connections/{id}/transactions",
+  method: "get",
+  summary: "List imported transactions for a connection",
+  request: {
+    params: z.object({
+      id: z.uuid(),
+    }),
+  },
+  responses: {
+    [HTTPStatusCodes.OK]: jsonContent(
+      listConnectionTransactionsResponseSchema,
+      "Booked transactions for enabled accounts on this connection",
+    ),
+    [HTTPStatusCodes.BAD_REQUEST]: jsonContent(z.object({ error: z.string() }), "No active space"),
+    [HTTPStatusCodes.UNAUTHORIZED]: jsonContent(z.object({ error: z.string() }), "Unauthorized"),
+    [HTTPStatusCodes.NOT_FOUND]: jsonContent(z.object({ error: z.string() }), "Connection not found"),
+  },
+});
+
+export type ListConnectionTransactionsRoute = typeof listConnectionTransactions;
 
 export const toggleBankAccount = createRoute({
   tags,

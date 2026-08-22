@@ -38,6 +38,9 @@ export class Provider implements BankingProvider {
 
   getAccounts: BankingProvider["getAccounts"] = (params) => this.#provider.getAccounts(params);
 
+  getTransactions: BankingProvider["getTransactions"] = (params) =>
+    this.#provider.getTransactions(params);
+
   exchangeCode: BankingProvider["exchangeCode"] = (params) => {
     if (!this.#provider.exchangeCode) {
       throw new Error("exchangeCode is not supported for this provider");

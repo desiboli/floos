@@ -25,3 +25,13 @@ export type ToggleBankAccountResult = InferResponseType<
   (typeof api.banking.accounts)[":id"]["$patch"],
   200
 >;
+
+export type ConnectionTransactionsResult = InferResponseType<
+  (typeof api.banking.connections)[":id"]["transactions"]["$get"],
+  200
+>;
+
+export type SyncConnectionResult = InferResponseType<
+  (typeof api.banking.connections)[":id"]["sync"]["$post"],
+  202
+>;

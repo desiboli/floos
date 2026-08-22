@@ -126,8 +126,20 @@ export function SelectAccountsForm({ connectionId }: { connectionId: string }) {
           enabled: enabledMap[account.providerAccountId] ?? true,
         })),
       }),
-    onSuccess: () => {
-      toast.add({ type: "success", title: m.onboarding_select_accounts_toast_success() });
+    onSuccess: (result) => {
+      if (result.importStarted) {
+        toast.add({
+          type: "loading",
+          title: m.onboarding_select_accounts_toast_importing_title(),
+          description: m.onboarding_select_accounts_toast_importing_description(),
+        });
+      } else {
+        toast.add({
+          type: "warning",
+          title: m.onboarding_select_accounts_toast_import_failed_title(),
+          description: m.onboarding_select_accounts_toast_import_failed_description(),
+        });
+      }
       navigate({
         search: (prev) => ({ ...prev, s: "reconciliation" }),
       });

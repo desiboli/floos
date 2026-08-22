@@ -18,6 +18,7 @@
     "dev:native": "vp run --filter native dev",
     "dev:web": "vp run --filter web dev",
     "dev:server": "vp run --filter server dev",
+    "dev:trigger": "vp run --filter @floos/jobs dev",
     "db:push": "vp run --filter @floos/db db:push",
     "db:studio": "vp run --filter @floos/db db:studio",
     "db:generate": "vp run --filter @floos/db db:generate",

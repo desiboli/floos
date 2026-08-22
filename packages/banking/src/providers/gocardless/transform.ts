@@ -1,5 +1,5 @@
-import type { Account, AccountType, Institution } from "../../types";
-import type { GCAccountDetails, GCBalance, GCInstitution } from "./types";
+import type { Account, AccountType, Institution, Transaction } from "../../types";
+import type { GCAccountDetails, GCBalance, GCInstitution, GCTransaction } from "./types";
 
 export const transformInstitution = (inst: GCInstitution): Institution => ({
   id: inst.id,
@@ -68,5 +68,64 @@ export const transformAccount = (params: {
     iban: acct.iban ?? null,
     bic: acct.bic ?? institution.bic ?? null,
     expiresAt: expiresAt.toISOString(),
+  };
+};
+
+const remittanceText = (transaction: GCTransaction): string | null => {
+  const unstructured = transaction.remittanceInformationUnstructured?.trim();
+  if (unstructured) return unstructured;
+
+  const fromArray = transaction.remittanceInformationUnstructuredArray
+    ?.filter(Boolean)
+    .join(" ")
+    .trim();
+  if (fromArray) return fromArray;
+
+  const additional = transaction.additionalInformation?.trim();
+  return additional || null;
+};
+
+const firstCurrencyExchange = (value: GCTransaction["currencyExchange"]) => {
+  if (!value) return undefined;
+  return Array.isArray(value) ? value[0] : value;
+};
+
+export const transformTransaction = (transaction: GCTransaction): Transaction | null => {
+  const id = transaction.internalTransactionId ?? transaction.transactionId;
+  if (!id) return null;
+
+  const date = transaction.bookingDate ?? transaction.valueDate;
+  if (!date) return null;
+
+  const amount = +transaction.transactionAmount.amount;
+  if (!Number.isFinite(amount)) return null;
+
+  const remittance = remittanceText(transaction);
+  const preferred = amount >= 0 ? transaction.debtorName : transaction.creditorName;
+  const other = amount >= 0 ? transaction.creditorName : transaction.debtorName;
+  const counterpartyName = preferred?.trim() || other?.trim() || null;
+  const fx = firstCurrencyExchange(transaction.currencyExchange);
+  const currencyRate = fx?.exchangeRate != null ? Number(fx.exchangeRate) : null;
+  const numericRate = currencyRate != null && Number.isFinite(currencyRate) ? currencyRate : null;
+  const balanceRaw = transaction.balanceAfterTransaction?.balanceAmount?.amount;
+  const balance = balanceRaw != null ? Number(balanceRaw) : null;
+
+  return {
+    id,
+    date,
+    amount,
+    currency: transaction.transactionAmount.currency,
+    name: counterpartyName || remittance || "No information",
+    description: remittance,
+    status: "posted",
+    method:
+      transaction.proprietaryBankTransactionCode?.trim() ||
+      transaction.bankTransactionCode?.trim() ||
+      null,
+    counterpartyName,
+    merchantName: null,
+    balance: balance != null && Number.isFinite(balance) ? balance : null,
+    currencyRate: numericRate,
+    currencySource: numericRate != null ? (fx?.sourceCurrency?.toUpperCase() ?? null) : null,
   };
 };

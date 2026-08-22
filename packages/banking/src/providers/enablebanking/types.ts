@@ -83,3 +83,47 @@ export type EBBalance = {
 export type EBBalancesResponse = {
   balances: EBBalance[];
 };
+
+export type EBAmount = {
+  currency: string;
+  amount: string;
+};
+
+export type EBPartyIdentification = {
+  name?: string;
+};
+
+export type EBBankTransactionCode = {
+  description?: string;
+  code?: string;
+  sub_code?: string;
+};
+
+export type EBExchangeRate = {
+  unit_currency?: string;
+  exchange_rate?: string;
+  rate_type?: string;
+};
+
+/** GET /accounts/{id}/transactions — booked rows only via transaction_status=BOOK */
+export type EBTransaction = {
+  entry_reference?: string;
+  transaction_amount: EBAmount;
+  creditor?: EBPartyIdentification;
+  debtor?: EBPartyIdentification;
+  bank_transaction_code?: EBBankTransactionCode;
+  credit_debit_indicator: string;
+  status?: string;
+  booking_date?: string;
+  value_date?: string;
+  remittance_information?: string[];
+  note?: string;
+  transaction_id?: string;
+  balance_after_transaction?: EBAmount;
+  exchange_rate?: EBExchangeRate;
+};
+
+export type EBTransactionsResponse = {
+  transactions: EBTransaction[];
+  continuation_key?: string | null;
+};

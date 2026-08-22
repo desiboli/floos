@@ -53,5 +53,8 @@
   "onboarding_select_accounts_try_again": "Försök igen",
   "onboarding_select_accounts_empty": "Banken returnerade inga konton.",
   "onboarding_select_accounts_missing_connection": "Saknar anslutning. Börja med att ansluta en bank.",
-  "onboarding_select_accounts_toast_success": "Konton sparade"
+  "onboarding_select_accounts_toast_importing_title": "Importerar transaktioner",
+  "onboarding_select_accounts_toast_importing_description": "Det tar vanligtvis ungefär en minut. Beroende på banken kan det ta längre tid — du kan fortsätta.",
+  "onboarding_select_accounts_toast_import_failed_title": "Konton sparade, men importen startade inte",
+  "onboarding_select_accounts_toast_import_failed_description": "Du kan fortsätta. Försök igen senare om transaktionerna saknas."
 }

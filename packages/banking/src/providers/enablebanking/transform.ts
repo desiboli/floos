@@ -1,5 +1,7 @@
-import type { Account, AccountType, Institution } from "../../types";
-import type { EBAccount, EBAspsp, EBBalance } from "./types";
+import { createHash } from "node:crypto";
+
+import type { Account, AccountType, Institution, Transaction } from "../../types";
+import type { EBAccount, EBAspsp, EBBalance, EBTransaction } from "./types";
 
 /**
  * Stable catalog id. Enable Banking ASPSPs have no UUID.
@@ -87,5 +89,67 @@ export const transformAccount = (params: {
     iban: account.account_id?.iban ?? null,
     bic: account.account_servicer?.bic_fi ?? null,
     expiresAt: validUntil ?? null,
+  };
+};
+
+const remittanceText = (transaction: EBTransaction): string | null => {
+  const joined = transaction.remittance_information?.filter(Boolean).join(" ").trim();
+  if (joined) return joined;
+  const note = transaction.note?.trim();
+  return note || null;
+};
+
+/**
+ * entry_reference is the stable ASPSP id. transaction_id can change and is not unique.
+ * When entry_reference is missing, hash booking fields instead of falling back to transaction_id.
+ */
+const generateTransactionId = (transaction: EBTransaction): string => {
+  const remittance = remittanceText(transaction) ?? "";
+  const payload = [
+    transaction.booking_date ?? "",
+    transaction.transaction_amount.amount,
+    transaction.transaction_amount.currency,
+    transaction.credit_debit_indicator,
+    remittance,
+    transaction.balance_after_transaction?.amount ?? "",
+  ].join("|");
+
+  return createHash("sha256").update(payload).digest("hex");
+};
+
+export const transformTransaction = (transaction: EBTransaction): Transaction | null => {
+  const date = transaction.booking_date ?? transaction.value_date;
+  if (!date) return null;
+
+  const unsigned = Number(transaction.transaction_amount.amount);
+  if (!Number.isFinite(unsigned)) return null;
+
+  const amount = transaction.credit_debit_indicator === "DBIT" ? -Math.abs(unsigned) : Math.abs(unsigned);
+  const remittance = remittanceText(transaction);
+  const counterparty =
+    transaction.credit_debit_indicator === "CRDT"
+      ? transaction.debtor?.name
+      : transaction.creditor?.name;
+  const counterpartyName = counterparty?.trim() || null;
+  const method =
+    transaction.bank_transaction_code?.code?.trim() ||
+    transaction.bank_transaction_code?.description?.trim() ||
+    null;
+  const currencyRate = toFiniteNumber(transaction.exchange_rate?.exchange_rate);
+
+  return {
+    id: transaction.entry_reference || generateTransactionId(transaction),
+    date,
+    amount,
+    currency: transaction.transaction_amount.currency,
+    name: counterpartyName || remittance || "No information",
+    description: remittance,
+    status: transaction.status === "BOOK" ? "posted" : "pending",
+    method,
+    counterpartyName,
+    merchantName: null,
+    balance: toFiniteNumber(transaction.balance_after_transaction?.amount),
+    currencyRate,
+    currencySource: currencyRate != null ? (transaction.exchange_rate?.unit_currency ?? null) : null,
   };
 };

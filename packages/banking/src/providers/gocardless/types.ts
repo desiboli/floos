@@ -69,3 +69,44 @@ export type GCBalance = {
 export type GCBalancesResponse = {
   balances: GCBalance[];
 };
+
+export type GCCurrencyExchange = {
+  sourceCurrency?: string;
+  exchangeRate?: string;
+  unitCurrency?: string;
+  targetCurrency?: string;
+};
+
+export type GCTransaction = {
+  transactionId?: string;
+  internalTransactionId?: string;
+  bookingDate?: string;
+  valueDate?: string;
+  transactionAmount: {
+    amount: string;
+    currency: string;
+  };
+  creditorName?: string;
+  debtorName?: string;
+  remittanceInformationUnstructured?: string;
+  remittanceInformationUnstructuredArray?: string[];
+  additionalInformation?: string;
+  bankTransactionCode?: string;
+  proprietaryBankTransactionCode?: string;
+  balanceAfterTransaction?: {
+    balanceAmount?: {
+      amount: string;
+      currency: string;
+    };
+  };
+  /** Berlin Group: list or a single object. */
+  currencyExchange?: GCCurrencyExchange | GCCurrencyExchange[];
+};
+
+/** GET /api/v2/accounts/{id}/transactions/ */
+export type GCTransactionsResponse = {
+  transactions: {
+    booked: GCTransaction[];
+    pending?: GCTransaction[];
+  };
+};
