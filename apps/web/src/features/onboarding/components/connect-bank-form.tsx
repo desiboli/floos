@@ -45,6 +45,7 @@ import { createBankLink, providerLabel } from "@/features/banking/services/api";
 import { useInstitutions } from "@/features/institutions/hooks/use-institutions";
 import { useUserSpaces } from "@/features/spaces/hooks/use-user-spaces";
 import { countries, countriesByCode } from "@/lib/countries";
+import { m } from "@/paraglide/messages.js";
 
 const routeApi = getRouteApi("/_auth/onboarding/");
 
@@ -99,10 +100,18 @@ function BankRow({
           size="sm"
           variant="ghost"
           disabled={disabled}
-          aria-label={isConnecting ? "Connecting" : "Connect"}
+          aria-label={
+            isConnecting
+              ? m.onboarding_connect_bank_connecting_label()
+              : m.onboarding_connect_bank_connect_label()
+          }
           onClick={() => onConnect(institution.id)}
         >
-          {isConnecting ? <Icons.loader className="size-4 animate-spin" /> : "Connect"}
+          {isConnecting ? (
+            <Icons.loader className="size-4 animate-spin" />
+          ) : (
+            m.onboarding_connect_bank_connect_label()
+          )}
         </Button>
       </ItemActions>
     </Item>
@@ -147,21 +156,19 @@ export function ConnectBankForm() {
   return (
     <Card className="w-full sm:max-w-lg">
       <CardHeader>
-        <CardTitle>Connect your bank</CardTitle>
-        <CardDescription>
-          Choose your bank to share read-only balances and transactions. You can disconnect anytime.
-        </CardDescription>
+        <CardTitle>{m.onboarding_connect_bank_title()}</CardTitle>
+        <CardDescription>{m.onboarding_connect_bank_description()}</CardDescription>
       </CardHeader>
       <CardContent>
         <FieldGroup>
           <Field>
-            <FieldLabel htmlFor="bank-search">Search</FieldLabel>
+            {/* <FieldLabel htmlFor="bank-search">Search</FieldLabel> */}
             <InputGroup className="w-full border-input dark:bg-input/30 focus-within:border-ring focus-within:border-b-ring focus-within:ring-1 focus-within:ring-ring/50">
               <InputGroupInput
                 id="bank-search"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search banks…"
+                placeholder={m.onboarding_connect_bank_search_placeholder()}
                 autoComplete="off"
               />
               <InputGroupAddon align="inline-end" className="h-full py-0">
@@ -192,10 +199,12 @@ export function ConnectBankForm() {
                   <ComboboxContent align="end" sideOffset={8} alignOffset={-4} className="min-w-56">
                     <ComboboxInput
                       showTrigger={false}
-                      placeholder="Search country…"
+                      placeholder={m.onboarding_connect_bank_search_country_placeholder()}
                       autoComplete="off"
                     />
-                    <ComboboxEmpty>No country found.</ComboboxEmpty>
+                    <ComboboxEmpty>
+                      {m.onboarding_connect_bank_search_country_empty()}
+                    </ComboboxEmpty>
                     <ComboboxList>
                       {(country) => (
                         <ComboboxItem key={country.code} value={country}>
@@ -222,11 +231,11 @@ export function ConnectBankForm() {
                 <BankListSkeleton />
               ) : isError ? (
                 <p className="py-8 text-center text-sm text-destructive">
-                  Failed to load banks. Try again.
+                  {m.onboarding_connect_bank_error()}
                 </p>
               ) : filtered.length === 0 ? (
                 <p className="py-8 text-center text-sm text-muted-foreground">
-                  No banks found for this country.
+                  {m.onboarding_connect_bank_search_empty()}
                 </p>
               ) : (
                 filtered.map((institution) => (
@@ -255,10 +264,12 @@ export function ConnectBankForm() {
             });
           }}
         >
-          Skip for now
+          {m.onboarding_connect_bank_skip_label()}
         </Button>
         <p className="text-center text-xs text-muted-foreground">
-          Read-only access · Encrypted · Disconnect anytime
+          {m.onboarding_connect_bank_read_only_label()} ·{" "}
+          {m.onboarding_connect_bank_encrypted_label()} ·{" "}
+          {m.onboarding_connect_bank_disconnect_label()}
         </p>
       </CardFooter>
     </Card>

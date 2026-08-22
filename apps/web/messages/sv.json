@@ -25,5 +25,18 @@
   "onboarding_space_name_error_min": "Namnet på hubben måste vara minst 2 tecken.",
   "onboarding_space_name_error_max": "Namnet på hubben måste vara max 32 tecken.",
   "onboarding_country_error": "Välj ett land",
-  "onboarding_base_currency_error": "Välj en valuta"
+  "onboarding_base_currency_error": "Välj en valuta",
+  "onboarding_connect_bank_title": "Anslut ditt bankkonto",
+  "onboarding_connect_bank_description": "Välj din bank för att dela läsbara saldon och transaktioner. Du kan avsluta när som helst.",
+  "onboarding_connect_bank_search_placeholder": "Sök bland banker…",
+  "onboarding_connect_bank_search_country_placeholder": "Sök land…",
+  "onboarding_connect_bank_search_country_empty": "Inget land hittat.",
+  "onboarding_connect_bank_connecting_label": "Ansluter",
+  "onboarding_connect_bank_connect_label": "Anslut",
+  "onboarding_connect_bank_error": "Misslyckades att ladda banker. Försök igen.",
+  "onboarding_connect_bank_search_empty": "Inga banker hittades för detta land.",
+  "onboarding_connect_bank_skip_label": "Hoppa över",
+  "onboarding_connect_bank_read_only_label": "Läsbar åtkomst",
+  "onboarding_connect_bank_encrypted_label": "Krypterad",
+  "onboarding_connect_bank_disconnect_label": "Avsluta när som helst"
 }

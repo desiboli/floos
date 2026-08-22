@@ -25,5 +25,18 @@
   "onboarding_space_name_error_min": "Space name must be at least 2 characters.",
   "onboarding_space_name_error_max": "Space name must be at most 32 characters.",
   "onboarding_country_error": "Select a country",
-  "onboarding_base_currency_error": "Select a currency"
+  "onboarding_base_currency_error": "Select a currency",
+  "onboarding_connect_bank_title": "Connect your bank",
+  "onboarding_connect_bank_description": "Choose your bank to share read-only balances and transactions. You can disconnect anytime.",
+  "onboarding_connect_bank_search_placeholder": "Search banks…",
+  "onboarding_connect_bank_search_country_placeholder": "Search country…",
+  "onboarding_connect_bank_search_country_empty": "No country found.",
+  "onboarding_connect_bank_connecting_label": "Connecting",
+  "onboarding_connect_bank_connect_label": "Connect",
+  "onboarding_connect_bank_error": "Failed to load banks. Try again.",
+  "onboarding_connect_bank_search_empty": "No banks found for this country.",
+  "onboarding_connect_bank_skip_label": "Skip for now",
+  "onboarding_connect_bank_read_only_label": "Read-only access",
+  "onboarding_connect_bank_encrypted_label": "Encrypted",
+  "onboarding_connect_bank_disconnect_label": "Disconnect anytime"
 }
