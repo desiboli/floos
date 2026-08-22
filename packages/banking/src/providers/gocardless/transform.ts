@@ -1,4 +1,10 @@
-import type { Account, AccountType, Institution, Transaction } from "../../types";
+import type {
+  Account,
+  AccountType,
+  GetAccountBalanceResponse,
+  Institution,
+  Transaction,
+} from "../../types";
 import type { GCAccountDetails, GCBalance, GCInstitution, GCTransaction } from "./types";
 
 export const transformInstitution = (inst: GCInstitution): Institution => ({
@@ -41,6 +47,25 @@ const getAvailableBalance = (balances: GCBalance[], currency: string): number | 
   return available ? Number(available.balanceAmount.amount) : null;
 };
 
+export const transformAccountBalance = (
+  balances: GCBalance[],
+  currency?: string,
+): GetAccountBalanceResponse => {
+  const resolvedCurrency = currency || balances[0]?.balanceAmount.currency;
+  if (!resolvedCurrency) {
+    return { currency: null, amount: null, availableBalance: null };
+  }
+
+  const primary = selectPrimaryBalance(balances, resolvedCurrency);
+  const parsed = primary != null ? Number(primary.balanceAmount.amount) : null;
+
+  return {
+    currency: primary?.balanceAmount.currency ?? resolvedCurrency,
+    amount: parsed != null && Number.isFinite(parsed) ? parsed : null,
+    availableBalance: getAvailableBalance(balances, resolvedCurrency),
+  };
+};
+
 export const transformAccount = (params: {
   id: string;
   details: GCAccountDetails;
@@ -52,7 +77,7 @@ export const transformAccount = (params: {
   const acct = details.account;
   const type = getAccountType(acct.cashAccountType);
   const currency = acct.currency;
-  const primary = selectPrimaryBalance(balances, currency);
+  const snapshot = transformAccountBalance(balances, currency);
   const expiresAt = new Date();
   expiresAt.setDate(expiresAt.getDate() + (accessValidForDays ?? 180));
 
@@ -62,8 +87,8 @@ export const transformAccount = (params: {
     currency,
     type,
     institution: transformInstitution(institution),
-    balance: primary ? Number(primary.balanceAmount.amount) : 0,
-    availableBalance: getAvailableBalance(balances, currency),
+    balance: snapshot.amount ?? 0,
+    availableBalance: snapshot.availableBalance,
     creditLimit: null,
     iban: acct.iban ?? null,
     bic: acct.bic ?? institution.bic ?? null,

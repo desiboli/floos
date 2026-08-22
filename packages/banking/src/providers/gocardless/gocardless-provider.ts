@@ -4,6 +4,8 @@ import type {
   ConnectionStatus,
   CreateLinkRequest,
   CreateLinkResponse,
+  GetAccountBalanceRequest,
+  GetAccountBalanceResponse,
   GetAccountsRequest,
   GetConnectionStatusRequest,
   GetInstitutionsRequest,
@@ -13,7 +15,12 @@ import type {
 } from "../../types";
 
 import { GoCardlessApi } from "./gocardless-api";
-import { transformAccount, transformInstitution, transformTransaction } from "./transform";
+import {
+  transformAccount,
+  transformAccountBalance,
+  transformInstitution,
+  transformTransaction,
+} from "./transform";
 
 export class GoCardlessProvider implements BankingProvider {
   #api = new GoCardlessApi();
@@ -103,6 +110,14 @@ export class GoCardlessProvider implements BankingProvider {
         });
       }),
     );
+  };
+
+  getAccountBalance = async ({
+    accountId,
+    currency,
+  }: GetAccountBalanceRequest): Promise<GetAccountBalanceResponse> => {
+    const balancesRes = await this.#api.getAccountBalances(accountId);
+    return transformAccountBalance(balancesRes.balances ?? [], currency);
   };
 
   getTransactions = async ({

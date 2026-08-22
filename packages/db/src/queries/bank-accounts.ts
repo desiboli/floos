@@ -50,6 +50,31 @@ export async function getEnabledBankAccountsByConnection(db: Database, bankConne
     .where(and(eq(bankAccounts.bankConnectionId, bankConnectionId), eq(bankAccounts.enabled, true)));
 }
 
+export async function updateBankAccountBalances(
+  db: Database,
+  {
+    id,
+    balance,
+    availableBalance,
+  }: {
+    id: string;
+    balance: string;
+    availableBalance: string | null;
+  },
+) {
+  const [result] = await db
+    .update(bankAccounts)
+    .set({
+      balance,
+      availableBalance,
+      updatedAt: sql`now()`,
+    })
+    .where(eq(bankAccounts.id, id))
+    .returning({ id: bankAccounts.id });
+
+  return result ?? null;
+}
+
 export async function updateBankAccountEnabled(
   db: Database,
   {

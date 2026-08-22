@@ -42,6 +42,7 @@ export const syncConnectionTransactions = schemaTask({
     logger.info("Sync finished", {
       connectionId,
       synced: result.synced,
+      balancesUpdated: result.balancesUpdated,
       manualSync,
     });
 

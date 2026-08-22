@@ -4,6 +4,8 @@ import type {
   ConnectionStatus,
   CreateLinkRequest,
   CreateLinkResponse,
+  GetAccountBalanceRequest,
+  GetAccountBalanceResponse,
   GetAccountsRequest,
   GetConnectionStatusRequest,
   GetInstitutionsRequest,
@@ -13,7 +15,12 @@ import type {
 } from "../../types";
 
 import { EnableBankingApi } from "./enablebanking-api";
-import { transformAccount, transformInstitution, transformTransaction } from "./transform";
+import {
+  transformAccount,
+  transformAccountBalance,
+  transformInstitution,
+  transformTransaction,
+} from "./transform";
 import type { EBTransaction } from "./types";
 
 export class EnableBankingProvider implements BankingProvider {
@@ -116,6 +123,13 @@ export class EnableBankingProvider implements BankingProvider {
         });
       }),
     );
+  };
+
+  getAccountBalance = async ({
+    accountId,
+  }: GetAccountBalanceRequest): Promise<GetAccountBalanceResponse> => {
+    const balancesRes = await this.#api.getAccountBalances(accountId);
+    return transformAccountBalance(balancesRes.balances ?? []);
   };
 
   getTransactions = async ({

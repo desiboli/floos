@@ -86,6 +86,21 @@ export type GetAccountsRequest = {
   id: string;
 };
 
+export type GetAccountBalanceRequest = {
+  /** Provider-native account id (bank_accounts.account_id). */
+  accountId: string;
+  /** GC: pick the stored-currency balance when the AIS payload is multi-currency. */
+  currency?: string;
+  accountType?: AccountType;
+};
+
+/** `amount` is null when the provider returned nothing parseable — do not persist 0. */
+export type GetAccountBalanceResponse = {
+  currency: string | null;
+  amount: number | null;
+  availableBalance: number | null;
+};
+
 /**
  * Normalized booked transaction. `id` is persisted as bank_transactions.providerTransactionId.
  * merchantName is reserved for later enrichment — AIS payloads have MCC, not a merchant name.

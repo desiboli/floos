@@ -38,6 +38,9 @@ export class Provider implements BankingProvider {
 
   getAccounts: BankingProvider["getAccounts"] = (params) => this.#provider.getAccounts(params);
 
+  getAccountBalance: BankingProvider["getAccountBalance"] = (params) =>
+    this.#provider.getAccountBalance(params);
+
   getTransactions: BankingProvider["getTransactions"] = (params) =>
     this.#provider.getTransactions(params);
 

@@ -2,6 +2,7 @@ import { Provider } from "@floos/banking";
 import type { Database } from "@floos/db";
 import {
   touchBankConnectionLastSyncAt,
+  updateBankAccountBalances,
   upsertBankTransactions,
   type UpsertBankTransactionInput,
 } from "@floos/db/queries";
@@ -12,10 +13,11 @@ export type SyncConnectionResult = {
   connectionId: string;
   synced: number;
   newTransactionIds: string[];
+  balancesUpdated: number;
 };
 
 /**
- * Fetch provider transactions for enabled accounts and upsert them.
+ * Refresh balances, then fetch provider transactions for enabled accounts.
  *
  * `latest: !manualSync`
  * - manualSync true  → full history (initial / user-triggered)
@@ -34,10 +36,38 @@ export async function syncConnection(
   const provider = new Provider({ provider: connection.provider });
 
   let synced = 0;
+  let balancesUpdated = 0;
   const newTransactionIds: string[] = [];
 
   for (const account of accounts) {
     if (!account.enabled) continue;
+
+    try {
+      const snapshot = await provider.getAccountBalance({
+        accountId: account.accountId,
+        currency: account.currency,
+        accountType: account.type,
+      });
+
+      if (snapshot.amount != null) {
+        await updateBankAccountBalances(db, {
+          id: account.id,
+          balance: snapshot.amount.toFixed(2),
+          availableBalance:
+            snapshot.availableBalance != null && Number.isFinite(snapshot.availableBalance)
+              ? snapshot.availableBalance.toFixed(2)
+              : null,
+        });
+        balancesUpdated += 1;
+      }
+    } catch (err) {
+      logger.error("Failed to sync account balance", {
+        connectionId: connection.id,
+        bankAccountId: account.id,
+        providerAccountId: account.accountId,
+        error: err instanceof Error ? err.message : String(err),
+      });
+    }
 
     try {
       const txns = await provider.getTransactions({
@@ -88,5 +118,6 @@ export async function syncConnection(
     connectionId: connection.id,
     synced,
     newTransactionIds,
+    balancesUpdated,
   };
 }

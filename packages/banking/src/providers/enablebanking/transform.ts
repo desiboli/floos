@@ -1,6 +1,12 @@
 import { createHash } from "node:crypto";
 
-import type { Account, AccountType, Institution, Transaction } from "../../types";
+import type {
+  Account,
+  AccountType,
+  GetAccountBalanceResponse,
+  Institution,
+  Transaction,
+} from "../../types";
 import type { EBAccount, EBAspsp, EBBalance, EBTransaction } from "./types";
 
 /**
@@ -57,6 +63,16 @@ const getAvailableBalance = (balances: EBBalance[]): number | null => {
   return available ? toFiniteNumber(available.balance_amount.amount) : null;
 };
 
+export const transformAccountBalance = (balances: EBBalance[]): GetAccountBalanceResponse => {
+  const primary = selectPrimaryBalance(balances);
+
+  return {
+    currency: primary?.balance_amount.currency ?? null,
+    amount: toFiniteNumber(primary?.balance_amount.amount),
+    availableBalance: getAvailableBalance(balances),
+  };
+};
+
 export const transformAccount = (params: {
   account: EBAccount;
   accountId: string;
@@ -67,12 +83,12 @@ export const transformAccount = (params: {
 }): Account => {
   const { account, accountId, balances, aspspName, aspspCountry, validUntil } = params;
   const type = getAccountType(account.cash_account_type);
-  const primary = selectPrimaryBalance(balances);
+  const snapshot = transformAccountBalance(balances);
 
   return {
     id: account.uid || accountId,
     name: account.name ?? account.product ?? aspspName,
-    currency: account.currency || primary?.balance_amount.currency || "XXX",
+    currency: account.currency || snapshot.currency || "XXX",
     type,
     institution: {
       id: `${aspspName}_${aspspCountry}`.toUpperCase().replace(/\s+/g, "_"),
@@ -83,8 +99,8 @@ export const transformAccount = (params: {
       availableHistory: null,
       psuType: null,
     },
-    balance: toFiniteNumber(primary?.balance_amount.amount) ?? 0,
-    availableBalance: getAvailableBalance(balances),
+    balance: snapshot.amount ?? 0,
+    availableBalance: snapshot.availableBalance,
     creditLimit: account.credit_limit ? toFiniteNumber(account.credit_limit.amount) : null,
     iban: account.account_id?.iban ?? null,
     bic: account.account_servicer?.bic_fi ?? null,

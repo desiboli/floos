@@ -3,6 +3,8 @@ import type {
   ConnectionStatus,
   CreateLinkRequest,
   CreateLinkResponse,
+  GetAccountBalanceRequest,
+  GetAccountBalanceResponse,
   GetAccountsRequest,
   GetConnectionStatusRequest,
   GetInstitutionsRequest,
@@ -16,6 +18,7 @@ export interface BankingProvider {
   createLink(params: CreateLinkRequest): Promise<CreateLinkResponse>;
   getConnectionStatus(params: GetConnectionStatusRequest): Promise<ConnectionStatus>;
   getAccounts(params: GetAccountsRequest): Promise<Account[]>;
+  getAccountBalance(params: GetAccountBalanceRequest): Promise<GetAccountBalanceResponse>;
   getTransactions(params: GetTransactionsRequest): Promise<Transaction[]>;
   /**
    * Enable Banking: exchange callback `code` → session_id.
