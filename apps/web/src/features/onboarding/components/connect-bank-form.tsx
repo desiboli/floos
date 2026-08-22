@@ -14,18 +14,25 @@ import {
   ComboboxInput,
   ComboboxItem,
   ComboboxList,
+  ComboboxTrigger,
 } from "@floos/ui/components/combobox";
 import { Field, FieldGroup, FieldLabel } from "@floos/ui/components/field";
 import { Icons } from "@floos/ui/components/icons";
-import { Input } from "@floos/ui/components/input";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+} from "@floos/ui/components/input-group";
 import {
   Item,
+  ItemActions,
   ItemContent,
   ItemDescription,
   ItemMedia,
   ItemTitle,
 } from "@floos/ui/components/item";
-import { ItemActions } from "@floos/ui/components/item"; // keep the other Item* imports
+import { ScrollArea } from "@floos/ui/components/scroll-area";
 import { Skeleton } from "@floos/ui/components/skeleton";
 import { toast } from "@floos/ui/components/toast";
 import { useMutation } from "@tanstack/react-query";
@@ -73,7 +80,7 @@ function BankRow({
 
   return (
     <Item variant="muted">
-      <ItemMedia variant="image" className="bg-background [&_img]:object-contain">
+      <ItemMedia variant="image" className="bg-background [&_img]:object-contain rounded-full">
         {institution.logo ? (
           <img src={institution.logo} alt="" className="size-full" />
         ) : (
@@ -148,74 +155,94 @@ export function ConnectBankForm() {
       <CardContent>
         <FieldGroup>
           <Field>
-            <FieldLabel htmlFor="bank-country">Country</FieldLabel>
-            <Combobox
-              items={countries}
-              value={selectedCountry}
-              onValueChange={(country) => {
-                setCountryOverride(country?.code ?? "SE");
-                setSearchQuery("");
-              }}
-              itemToStringLabel={(country) => `${country.flag} ${country.name} · ${country.code}`}
-              isItemEqualToValue={(a, b) => a.code === b.code}
-            >
-              <ComboboxInput id="bank-country" placeholder="Search country…" autoComplete="off" />
-              <ComboboxContent>
-                <ComboboxEmpty>No country found.</ComboboxEmpty>
-                <ComboboxList>
-                  {(country) => (
-                    <ComboboxItem key={country.code} value={country}>
-                      <Item size="xs" className="p-0">
-                        <ItemContent>
-                          <ItemTitle className="whitespace-nowrap">
-                            <span aria-hidden="true">{country.flag}</span> {country.name}
-                          </ItemTitle>
-                          <ItemDescription>{country.code}</ItemDescription>
-                        </ItemContent>
-                      </Item>
-                    </ComboboxItem>
-                  )}
-                </ComboboxList>
-              </ComboboxContent>
-            </Combobox>
-          </Field>
-
-          <Field>
             <FieldLabel htmlFor="bank-search">Search</FieldLabel>
-            <Input
-              id="bank-search"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search banks…"
-              autoComplete="off"
-            />
+            <InputGroup className="w-full border-input dark:bg-input/30 focus-within:border-ring focus-within:border-b-ring focus-within:ring-1 focus-within:ring-ring/50">
+              <InputGroupInput
+                id="bank-search"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search banks…"
+                autoComplete="off"
+              />
+              <InputGroupAddon align="inline-end" className="h-full py-0">
+                <Combobox
+                  items={countries}
+                  value={selectedCountry}
+                  onValueChange={(country) => {
+                    setCountryOverride(country?.code ?? "SE");
+                    setSearchQuery("");
+                  }}
+                  itemToStringLabel={(country) => `${country.name} ${country.code}`}
+                  isItemEqualToValue={(a, b) => a.code === b.code}
+                >
+                  <ComboboxTrigger
+                    render={
+                      <InputGroupButton
+                        variant="ghost"
+                        className="h-full py-0 pr-1.5! text-xs font-normal tracking-normal normal-case"
+                        aria-label={
+                          selectedCountry ? `Country: ${selectedCountry.name}` : "Country"
+                        }
+                      />
+                    }
+                  >
+                    <span aria-hidden="true">{selectedCountry?.flag}</span>
+                    {selectedCountry?.name}
+                  </ComboboxTrigger>
+                  <ComboboxContent align="end" sideOffset={8} alignOffset={-4} className="min-w-56">
+                    <ComboboxInput
+                      showTrigger={false}
+                      placeholder="Search country…"
+                      autoComplete="off"
+                    />
+                    <ComboboxEmpty>No country found.</ComboboxEmpty>
+                    <ComboboxList>
+                      {(country) => (
+                        <ComboboxItem key={country.code} value={country}>
+                          <Item size="xs" className="p-0">
+                            <ItemContent>
+                              <ItemTitle className="whitespace-nowrap">
+                                <span aria-hidden="true">{country.flag}</span> {country.name}
+                              </ItemTitle>
+                              <ItemDescription>{country.code}</ItemDescription>
+                            </ItemContent>
+                          </Item>
+                        </ComboboxItem>
+                      )}
+                    </ComboboxList>
+                  </ComboboxContent>
+                </Combobox>
+              </InputGroupAddon>
+            </InputGroup>
           </Field>
 
-          <div className="flex max-h-80 flex-col gap-2 overflow-y-auto">
-            {isPending ? (
-              <BankListSkeleton />
-            ) : isError ? (
-              <p className="py-8 text-center text-sm text-destructive">
-                Failed to load banks. Try again.
-              </p>
-            ) : filtered.length === 0 ? (
-              <p className="py-8 text-center text-sm text-muted-foreground">
-                No banks found for this country.
-              </p>
-            ) : (
-              filtered.map((institution) => (
-                <BankRow
-                  key={institution.id}
-                  institution={institution}
-                  disabled={createLink.isPending}
-                  isConnecting={
-                    createLink.isPending && createLink.variables?.institutionId === institution.id
-                  }
-                  onConnect={handleConnect}
-                />
-              ))
-            )}
-          </div>
+          <ScrollArea className="h-80">
+            <div className="flex flex-col gap-2">
+              {isPending ? (
+                <BankListSkeleton />
+              ) : isError ? (
+                <p className="py-8 text-center text-sm text-destructive">
+                  Failed to load banks. Try again.
+                </p>
+              ) : filtered.length === 0 ? (
+                <p className="py-8 text-center text-sm text-muted-foreground">
+                  No banks found for this country.
+                </p>
+              ) : (
+                filtered.map((institution) => (
+                  <BankRow
+                    key={institution.id}
+                    institution={institution}
+                    disabled={createLink.isPending}
+                    isConnecting={
+                      createLink.isPending && createLink.variables?.institutionId === institution.id
+                    }
+                    onConnect={handleConnect}
+                  />
+                ))
+              )}
+            </div>
+          </ScrollArea>
         </FieldGroup>
       </CardContent>
       <CardFooter className="flex-col items-stretch gap-3">

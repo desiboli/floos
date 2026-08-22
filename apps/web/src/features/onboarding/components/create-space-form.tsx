@@ -43,16 +43,17 @@ import {
   getCurrencyForCountry,
   uniqueCurrencies,
 } from "@/lib/currencies";
+import { m } from "@/paraglide/messages.js";
 
 const routeApi = getRouteApi("/_auth/onboarding/");
 
 const formSchema = z.object({
   spaceName: z
     .string()
-    .min(2, "Space name must be at least 2 characters.")
-    .max(32, "Space name must be at most 32 characters."),
-  country: z.enum(countryCodes, { error: "Select a country" }),
-  baseCurrency: z.enum(uniqueCurrencies, { error: "Select a currency" }),
+    .min(2, m.onboarding_space_name_error_min())
+    .max(32, m.onboarding_space_name_error_max()),
+  country: z.enum(countryCodes, { error: m.onboarding_country_error() }),
+  baseCurrency: z.enum(uniqueCurrencies, { error: m.onboarding_base_currency_error() }),
 });
 
 export function CreateSpaceForm() {
@@ -99,11 +100,8 @@ export function CreateSpaceForm() {
   return (
     <Card className="w-full sm:max-w-md">
       <CardHeader>
-        <CardTitle>Create your financial space</CardTitle>
-        <CardDescription>
-          One place for everything you share, save and plan together — while personal money stays
-          personal.
-        </CardDescription>
+        <CardTitle>{m.onboarding_title()}</CardTitle>
+        <CardDescription>{m.onboarding_subtitle()}</CardDescription>
       </CardHeader>
       <CardContent>
         <form
@@ -120,7 +118,7 @@ export function CreateSpaceForm() {
                 const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
                 return (
                   <Field data-invalid={isInvalid}>
-                    <FieldLabel htmlFor={field.name}>Space Name</FieldLabel>
+                    <FieldLabel htmlFor={field.name}>{m.onboarding_space_name_label()}</FieldLabel>
                     <Input
                       id={field.name}
                       name={field.name}
@@ -128,7 +126,7 @@ export function CreateSpaceForm() {
                       onBlur={field.handleBlur}
                       onChange={(e) => field.handleChange(e.target.value)}
                       aria-invalid={isInvalid}
-                      placeholder="My Space"
+                      placeholder={m.onboarding_space_name_placeholder()}
                       autoComplete="off"
                     />
                     {isInvalid ? <FieldError errors={field.state.meta.errors} /> : null}
@@ -145,7 +143,7 @@ export function CreateSpaceForm() {
 
                 return (
                   <Field data-invalid={isInvalid}>
-                    <FieldLabel htmlFor={field.name}>Country</FieldLabel>
+                    <FieldLabel htmlFor={field.name}>{m.onboarding_country_label()}</FieldLabel>
                     <Combobox
                       items={countries}
                       value={selected}
@@ -176,13 +174,13 @@ export function CreateSpaceForm() {
                     >
                       <ComboboxInput
                         id={field.name}
-                        placeholder="Search country…"
+                        placeholder={m.onboarding_country_placeholder()}
                         aria-invalid={isInvalid}
                         onBlur={field.handleBlur}
                         autoComplete="off"
                       />
                       <ComboboxContent>
-                        <ComboboxEmpty>No country found.</ComboboxEmpty>
+                        <ComboboxEmpty>{m.onboarding_country_empty()}</ComboboxEmpty>
                         <ComboboxList>
                           {(country) => (
                             <ComboboxItem key={country.code} value={country}>
@@ -199,9 +197,7 @@ export function CreateSpaceForm() {
                         </ComboboxList>
                       </ComboboxContent>
                     </Combobox>
-                    <FieldDescription>
-                      Used to find banks you can connect. You can search another country later.
-                    </FieldDescription>
+                    <FieldDescription>{m.onboarding_country_description()}</FieldDescription>
                     {isInvalid ? <FieldError errors={field.state.meta.errors} /> : null}
                   </Field>
                 );
@@ -228,7 +224,7 @@ export function CreateSpaceForm() {
                   >
                     <div className="flex flex-row items-center justify-between gap-2">
                       <p className="text-xs text-muted-foreground">
-                        Ledger currency ·{" "}
+                        {m.onboarding_ledger_currency_label()} ·{" "}
                         <span className="text-sm text-foreground">
                           {currency ? `${currency.symbol} ${currency.code}` : "—"}
                         </span>
@@ -236,7 +232,7 @@ export function CreateSpaceForm() {
                       <CollapsibleTrigger
                         render={
                           <Button variant="ghost" size="xs">
-                            {open ? "Hide" : "Change"}
+                            {open ? m.onboarding_hide_button() : m.onboarding_change_button()}
                           </Button>
                         }
                       />
@@ -250,7 +246,9 @@ export function CreateSpaceForm() {
 
                           return (
                             <Field data-invalid={isInvalid}>
-                              <FieldLabel htmlFor={field.name}>Currency</FieldLabel>
+                              <FieldLabel htmlFor={field.name}>
+                                {m.onboarding_base_currency_label()}
+                              </FieldLabel>
                               <Combobox
                                 items={currencyOptions}
                                 value={selected}
@@ -262,13 +260,15 @@ export function CreateSpaceForm() {
                               >
                                 <ComboboxInput
                                   id={field.name}
-                                  placeholder="Search currency…"
+                                  placeholder={m.onboarding_base_currency_placeholder()}
                                   aria-invalid={isInvalid}
                                   onBlur={field.handleBlur}
                                   autoComplete="off"
                                 />
                                 <ComboboxContent>
-                                  <ComboboxEmpty>No currency found.</ComboboxEmpty>
+                                  <ComboboxEmpty>
+                                    {m.onboarding_base_currency_empty()}
+                                  </ComboboxEmpty>
                                   <ComboboxList>
                                     {(item) => (
                                       <ComboboxItem key={item.code} value={item}>
@@ -288,8 +288,7 @@ export function CreateSpaceForm() {
                                 </ComboboxContent>
                               </Combobox>
                               <FieldDescription>
-                                Shared totals are kept in this currency. Connected accounts can
-                                still be in another.
+                                {m.onboarding_base_currency_description()}
                               </FieldDescription>
                               {isInvalid ? <FieldError errors={field.state.meta.errors} /> : null}
                             </Field>
@@ -305,7 +304,7 @@ export function CreateSpaceForm() {
             <form.Subscribe selector={(state) => state.isSubmitting}>
               {(isSubmitting) => (
                 <Button type="submit" disabled={isSubmitting}>
-                  Create space
+                  {m.onboarding_create_space_button()}
                 </Button>
               )}
             </form.Subscribe>
