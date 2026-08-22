@@ -14,9 +14,11 @@ import {
   ItemActions,
   ItemContent,
   ItemDescription,
+  ItemGroup,
   ItemMedia,
   ItemTitle,
 } from "@floos/ui/components/item";
+import { ScrollArea } from "@floos/ui/components/scroll-area";
 import { toast } from "@floos/ui/components/toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
@@ -58,10 +60,11 @@ function SpaceRow({
           size="sm"
           variant="outline"
           disabled={disabled}
-          aria-label={isLaunching ? "Launching" : "Launch"}
+          aria-busy={isLaunching}
           onClick={() => onLaunch(space.id)}
         >
-          {isLaunching ? <Icons.loader className="size-4 animate-spin" /> : "Launch"}
+          {isLaunching ? <Icons.loader className="animate-spin" data-icon="inline-start" /> : null}
+          Launch
         </Button>
       </ItemActions>
     </Item>
@@ -107,17 +110,19 @@ export function SelectSpaceDialog() {
             Launch a space you already have. Stay on this page to create a new one.
           </DialogDescription>
         </DialogHeader>
-        <div className="flex max-h-65 flex-col gap-2 overflow-y-auto">
-          {spaces.map((space) => (
-            <SpaceRow
-              key={space.id}
-              space={space}
-              disabled={switchSpace.isPending}
-              isLaunching={switchSpace.isPending && switchSpace.variables?.spaceId === space.id}
-              onLaunch={handleLaunch}
-            />
-          ))}
-        </div>
+        <ScrollArea className="max-h-[50vh]">
+          <ItemGroup className="gap-2">
+            {spaces.map((space) => (
+              <SpaceRow
+                key={space.id}
+                space={space}
+                disabled={switchSpace.isPending}
+                isLaunching={switchSpace.isPending && switchSpace.variables?.spaceId === space.id}
+                onLaunch={handleLaunch}
+              />
+            ))}
+          </ItemGroup>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );
