@@ -38,5 +38,20 @@
   "onboarding_connect_bank_skip_label": "Hoppa över",
   "onboarding_connect_bank_read_only_label": "Läsbar åtkomst",
   "onboarding_connect_bank_encrypted_label": "Krypterad",
-  "onboarding_connect_bank_disconnect_label": "Avsluta när som helst"
+  "onboarding_connect_bank_disconnect_label": "Avsluta när som helst",
+  "onboarding_select_accounts_title": "Välj konton",
+  "onboarding_select_accounts_description": "Aktivera eller inaktivera varje konto. Du kan ändra detta senare.",
+  "onboarding_select_accounts_continue_label": "Fortsätt",
+  "onboarding_select_accounts_saving_label": "Sparar",
+  "onboarding_select_accounts_n_of_m": "{enabledCount} av {totalCount}",
+  "onboarding_select_accounts_type_depository": "Transaktionskonto",
+  "onboarding_select_accounts_type_credit": "Kredit",
+  "onboarding_select_accounts_type_loan": "Lån",
+  "onboarding_select_accounts_type_investment": "Investering",
+  "onboarding_select_accounts_type_other": "Övrigt",
+  "onboarding_select_accounts_error_load": "Kunde inte hämta konton. Försök igen.",
+  "onboarding_select_accounts_try_again": "Försök igen",
+  "onboarding_select_accounts_empty": "Banken returnerade inga konton.",
+  "onboarding_select_accounts_missing_connection": "Saknar anslutning. Börja med att ansluta en bank.",
+  "onboarding_select_accounts_toast_success": "Konton sparade"
 }

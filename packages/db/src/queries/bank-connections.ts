@@ -77,6 +77,21 @@ export async function getBankConnectionByInstitution(
   return result ?? null;
 }
 
+export async function updateBankConnectionStatus(
+  db: Database,
+  id: string,
+  spaceId: string,
+  status: "connected" | "disconnected" | "pending",
+) {
+  const [result] = await db
+    .update(bankConnections)
+    .set({ status })
+    .where(and(eq(bankConnections.id, id), eq(bankConnections.spaceId, spaceId)))
+    .returning();
+
+  return result ?? null;
+}
+
 export async function deleteBankConnection(db: Database, id: string, spaceId: string) {
   await db
     .delete(bankConnections)

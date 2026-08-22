@@ -43,3 +43,29 @@ export type Requisition = {
   accounts: string[];
   link: string;
 };
+
+/** Raw shape from GET /api/v2/accounts/{id}/details/ */
+export type GCAccountDetails = {
+  account: {
+    resourceId: string;
+    iban?: string;
+    bic?: string;
+    currency: string;
+    name?: string;
+    product?: string;
+    cashAccountType?: string;
+  };
+};
+
+export type GCBalance = {
+  balanceAmount: {
+    amount: string;
+    currency: string;
+  };
+  balanceType: string;
+};
+
+/** Raw shape from GET /api/v2/accounts/{id}/balances/ */
+export type GCBalancesResponse = {
+  balances: GCBalance[];
+};

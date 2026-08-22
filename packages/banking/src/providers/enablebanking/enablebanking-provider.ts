@@ -1,15 +1,17 @@
 import type { BankingProvider } from "../../interface";
 import type {
+  Account,
   ConnectionStatus,
   CreateLinkRequest,
   CreateLinkResponse,
+  GetAccountsRequest,
   GetConnectionStatusRequest,
   GetInstitutionsRequest,
   Institution,
 } from "../../types";
 
 import { EnableBankingApi } from "./enablebanking-api";
-import { transformInstitution } from "./transform";
+import { transformAccount, transformInstitution } from "./transform";
 
 export class EnableBankingProvider implements BankingProvider {
   #api = new EnableBankingApi();
@@ -85,4 +87,43 @@ export class EnableBankingProvider implements BankingProvider {
     if (!id) return { status: "disconnected" };
     return { status: "connected" };
   };
+
+  getAccounts = async ({ id }: GetAccountsRequest): Promise<Account[]> => {
+    const session = await this.#api.getSession(id);
+    const accountIds = sessionAccountIds(session.accounts);
+
+    if (accountIds.length === 0) {
+      return [];
+    }
+
+    return Promise.all(
+      accountIds.map(async (accountId) => {
+        const [account, balancesRes] = await Promise.all([
+          this.#api.getAccountDetails(accountId),
+          this.#api.getAccountBalances(accountId),
+        ]);
+
+        return transformAccount({
+          account,
+          accountId,
+          balances: balancesRes.balances,
+          aspspName: session.aspsp.name,
+          aspspCountry: session.aspsp.country,
+          validUntil: session.access.valid_until,
+        });
+      }),
+    );
+  };
+}
+
+function sessionAccountIds(accounts: Array<string | { uid: string }> | undefined): string[] {
+  if (!accounts?.length) return [];
+
+  return accounts.flatMap((item) => {
+    if (typeof item === "string" && item.length > 0) return [item];
+    if (typeof item === "object" && item && typeof item.uid === "string" && item.uid.length > 0) {
+      return [item.uid];
+    }
+    return [];
+  });
 }

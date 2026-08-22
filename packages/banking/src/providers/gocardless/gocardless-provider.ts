@@ -1,15 +1,17 @@
 import type { BankingProvider } from "../../interface";
 import type {
+  Account,
   ConnectionStatus,
   CreateLinkRequest,
   CreateLinkResponse,
+  GetAccountsRequest,
   GetConnectionStatusRequest,
   GetInstitutionsRequest,
   Institution,
 } from "../../types";
 
 import { GoCardlessApi } from "./gocardless-api";
-import { transformInstitution } from "./transform";
+import { transformAccount, transformInstitution } from "./transform";
 
 export class GoCardlessProvider implements BankingProvider {
   #api = new GoCardlessApi();
@@ -64,5 +66,40 @@ export class GoCardlessProvider implements BankingProvider {
     } catch {
       return { status: "disconnected" };
     }
+  };
+
+  getAccounts = async ({ id }: GetAccountsRequest): Promise<Account[]> => {
+    const requisition = await this.#api.getRequisition(id);
+
+    if (!requisition.accounts?.length) {
+      return [];
+    }
+
+    let institution = await this.#api.getInstitution(requisition.institution_id).catch(() => null);
+
+    if (!institution) {
+      const institutions = await this.#api.getInstitutions();
+      institution = institutions.find((i) => i.id === requisition.institution_id) ?? null;
+    }
+
+    if (!institution) {
+      return [];
+    }
+
+    return Promise.all(
+      requisition.accounts.map(async (accountId) => {
+        const [details, balancesRes] = await Promise.all([
+          this.#api.getAccountDetails(accountId),
+          this.#api.getAccountBalances(accountId),
+        ]);
+
+        return transformAccount({
+          id: accountId,
+          details,
+          balances: balancesRes.balances,
+          institution,
+        });
+      }),
+    );
   };
 }

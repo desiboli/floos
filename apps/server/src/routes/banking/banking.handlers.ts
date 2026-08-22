@@ -2,6 +2,7 @@ import { auth } from "@floos/auth";
 import { Provider } from "@floos/banking";
 import { db } from "@floos/db";
 import {
+  createBankAccounts,
   createBankConnection,
   deleteBankConnection,
   deletePendingBankConnection,
@@ -10,11 +11,19 @@ import {
   getInstitutionById,
   updateBankConnectionLink,
   getBankConnectionById,
+  updateBankAccountEnabled,
+  updateBankConnectionStatus,
 } from "@floos/db/queries";
 import { env } from "@floos/env/server";
 
 import type { AppRouteHandler } from "../../lib/types";
-import type { CallbackRoute, CreateLinkRoute } from "./banking.routes";
+import type {
+  CallbackRoute,
+  CommitAccountsRoute,
+  CreateLinkRoute,
+  ListProviderAccountsRoute,
+  ToggleBankAccountRoute,
+} from "./banking.routes";
 
 import * as HTTPStatusCodes from "../../http-status-codes";
 
@@ -164,4 +173,146 @@ export const callback: AppRouteHandler<CallbackRoute> = async (c) => {
     await deleteBankConnection(db, connection.id, activeSpaceId).catch(() => undefined);
     return back({ bankError: message });
   }
+};
+
+export const listProviderAccounts: AppRouteHandler<ListProviderAccountsRoute> = async (c) => {
+  const user = c.get("user");
+
+  if (!user) {
+    return c.json({ error: "Unauthorized" }, HTTPStatusCodes.UNAUTHORIZED);
+  }
+
+  const activeSpaceId = await getActiveSpaceId(db, user.id);
+
+  if (!activeSpaceId) {
+    return c.json({ error: "No active space set" }, HTTPStatusCodes.BAD_REQUEST);
+  }
+
+  const { id } = c.req.valid("param");
+  const connection = await getBankConnectionById(db, id, activeSpaceId);
+
+  if (!connection) {
+    return c.json({ error: "Connection not found" }, HTTPStatusCodes.NOT_FOUND);
+  }
+
+  if (connection.status === "disconnected") {
+    return c.json({ error: "Connection is disconnected" }, HTTPStatusCodes.BAD_REQUEST);
+  }
+
+  const providerId = connection.accessToken ?? connection.referenceId;
+
+  if (!providerId) {
+    return c.json({ error: "Connection has no access token" }, HTTPStatusCodes.BAD_REQUEST);
+  }
+
+  try {
+    const provider = new Provider({ provider: connection.provider });
+    const accounts = await provider.getAccounts({ id: providerId });
+    const sorted = accounts.toSorted((a, b) => b.balance - a.balance);
+
+    return c.json(
+      {
+        accounts: sorted.map((account) => ({
+          providerAccountId: account.id,
+          name: account.name,
+          type: account.type,
+          currency: account.currency,
+          balance: account.balance,
+          availableBalance: account.availableBalance,
+          creditLimit: account.creditLimit,
+          iban: account.iban,
+          bic: account.bic,
+        })),
+      },
+      HTTPStatusCodes.OK,
+    );
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Failed to fetch accounts";
+    c.get("log").error(err instanceof Error ? err : new Error(message));
+    return c.json({ error: message }, HTTPStatusCodes.BAD_REQUEST);
+  }
+};
+
+export const commitAccounts: AppRouteHandler<CommitAccountsRoute> = async (c) => {
+  const user = c.get("user");
+
+  if (!user) {
+    return c.json({ error: "Unauthorized" }, HTTPStatusCodes.UNAUTHORIZED);
+  }
+
+  const activeSpaceId = await getActiveSpaceId(db, user.id);
+
+  if (!activeSpaceId) {
+    return c.json({ error: "No active space set" }, HTTPStatusCodes.BAD_REQUEST);
+  }
+
+  const { id } = c.req.valid("param");
+  const { accounts } = c.req.valid("json");
+  const connection = await getBankConnectionById(db, id, activeSpaceId);
+
+  if (!connection) {
+    return c.json({ error: "Connection not found" }, HTTPStatusCodes.NOT_FOUND);
+  }
+
+  if (connection.status !== "pending") {
+    return c.json({ error: "Connection is not pending" }, HTTPStatusCodes.BAD_REQUEST);
+  }
+
+  if (!accounts.some((account) => account.enabled)) {
+    return c.json({ error: "At least one account must be enabled" }, HTTPStatusCodes.BAD_REQUEST);
+  }
+
+  try {
+    const dbAccounts = await createBankAccounts(
+      db,
+      accounts.map((account) => ({
+        spaceId: activeSpaceId,
+        bankConnectionId: connection.id,
+        accountId: account.providerAccountId,
+        name: account.name,
+        type: account.type,
+        currency: account.currency,
+        balance: String(account.balance),
+        availableBalance: account.availableBalance != null ? String(account.availableBalance) : null,
+        creditLimit: account.creditLimit != null ? String(account.creditLimit) : null,
+        iban: account.iban,
+        bic: account.bic,
+        enabled: account.enabled,
+        isManual: false,
+      })),
+    );
+
+    await updateBankConnectionStatus(db, connection.id, activeSpaceId, "connected");
+
+    const enabledCount = accounts.filter((account) => account.enabled).length;
+
+    return c.json({ count: dbAccounts.length, enabledCount }, HTTPStatusCodes.OK);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Failed to persist accounts";
+    return c.json({ error: message }, HTTPStatusCodes.BAD_REQUEST);
+  }
+};
+
+export const toggleBankAccount: AppRouteHandler<ToggleBankAccountRoute> = async (c) => {
+  const user = c.get("user");
+
+  if (!user) {
+    return c.json({ error: "Unauthorized" }, HTTPStatusCodes.UNAUTHORIZED);
+  }
+
+  const activeSpaceId = await getActiveSpaceId(db, user.id);
+
+  if (!activeSpaceId) {
+    return c.json({ error: "No active space set" }, HTTPStatusCodes.BAD_REQUEST);
+  }
+
+  const { id } = c.req.valid("param");
+  const { enabled } = c.req.valid("json");
+  const updated = await updateBankAccountEnabled(db, { id, spaceId: activeSpaceId, enabled });
+
+  if (!updated) {
+    return c.json({ error: "Account not found" }, HTTPStatusCodes.NOT_FOUND);
+  }
+
+  return c.json({ id: updated.id, enabled: updated.enabled }, HTTPStatusCodes.OK);
 };

@@ -2,6 +2,8 @@ import { env } from "@floos/env/server";
 
 import type {
   EndUserAgreement,
+  GCAccountDetails,
+  GCBalancesResponse,
   GCInstitution,
   RefreshTokenResponse,
   Requisition,
@@ -91,6 +93,21 @@ export class GoCardlessApi {
   /** GET /api/v2/requisitions/{id}/ — status `LN` means the user finished bank auth. */
   getRequisition = async (id: string): Promise<Requisition> => {
     return this.#request<Requisition>(`/api/v2/requisitions/${id}/`);
+  };
+
+  /** GET /api/v2/institutions/{id}/ */
+  getInstitution = async (id: string): Promise<GCInstitution> => {
+    return this.#request<GCInstitution>(`/api/v2/institutions/${id}/`);
+  };
+
+  /** GET /api/v2/accounts/{id}/details/ */
+  getAccountDetails = async (accountId: string): Promise<GCAccountDetails> => {
+    return this.#request<GCAccountDetails>(`/api/v2/accounts/${accountId}/details/`);
+  };
+
+  /** GET /api/v2/accounts/{id}/balances/ */
+  getAccountBalances = async (accountId: string): Promise<GCBalancesResponse> => {
+    return this.#request<GCBalancesResponse>(`/api/v2/accounts/${accountId}/balances/`);
   };
 
   #request = async <T>(path: string, options: RequestInit = {}): Promise<T> => {

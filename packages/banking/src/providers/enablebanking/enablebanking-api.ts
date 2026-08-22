@@ -1,7 +1,14 @@
 import { env } from "@floos/env/server";
 import { createSign } from "node:crypto";
 
-import type { EBAspspsResponse, EBAuthResponse, EBSessionResponse } from "./types";
+import type {
+  EBAccount,
+  EBAspspsResponse,
+  EBAuthResponse,
+  EBBalancesResponse,
+  EBSessionResponse,
+  EBSessionStatus,
+} from "./types";
 
 const BASE_URL = "https://api.enablebanking.com";
 
@@ -98,5 +105,20 @@ export class EnableBankingApi {
       method: "POST",
       body: JSON.stringify({ code }),
     });
+  };
+
+  /** GET /sessions/{id} */
+  getSession = async (sessionId: string): Promise<EBSessionStatus> => {
+    return this.#request<EBSessionStatus>(`/sessions/${sessionId}`);
+  };
+
+  /** GET /accounts/{id}/details */
+  getAccountDetails = async (accountId: string): Promise<EBAccount> => {
+    return this.#request<EBAccount>(`/accounts/${accountId}/details`);
+  };
+
+  /** GET /accounts/{id}/balances */
+  getAccountBalances = async (accountId: string): Promise<EBBalancesResponse> => {
+    return this.#request<EBBalancesResponse>(`/accounts/${accountId}/balances`);
   };
 }

@@ -60,3 +60,28 @@ export type GetConnectionStatusRequest = {
 export type ConnectionStatus = {
   status: "connected" | "disconnected" | "pending";
 };
+
+export type AccountType = "depository" | "credit" | "loan" | "investment" | "other";
+
+/**
+ * Normalized account from a provider session/requisition.
+ * `id` is the provider-native account id (stored later as bank_accounts.account_id).
+ */
+export type Account = {
+  id: string;
+  name: string;
+  currency: string;
+  type: AccountType;
+  institution: Institution;
+  balance: number;
+  availableBalance: number | null;
+  creditLimit: number | null;
+  iban: string | null;
+  bic: string | null;
+  expiresAt: string | null;
+};
+
+export type GetAccountsRequest = {
+  /** GC requisition id or EB session id (stored on bank_connections.accessToken). */
+  id: string;
+};

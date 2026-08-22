@@ -70,3 +70,122 @@ export const callback = createRoute({
 });
 
 export type CallbackRoute = typeof callback;
+
+export const accountTypeSchema = z.enum(["depository", "credit", "loan", "investment", "other"]);
+
+export const providerAccountSchema = z.object({
+  providerAccountId: z.string(),
+  name: z.string(),
+  type: accountTypeSchema,
+  currency: z.string(),
+  balance: z.number(),
+  availableBalance: z.number().nullable(),
+  creditLimit: z.number().nullable(),
+  iban: z.string().nullable(),
+  bic: z.string().nullable(),
+});
+
+export const listProviderAccountsResponseSchema = z.object({
+  accounts: z.array(providerAccountSchema),
+});
+
+export const listProviderAccounts = createRoute({
+  tags,
+  path: "/banking/connections/{id}/provider-accounts",
+  method: "get",
+  summary: "List accounts available for a connection (live from provider, no DB writes)",
+  request: {
+    params: z.object({
+      id: z.uuid(),
+    }),
+  },
+  responses: {
+    [HTTPStatusCodes.OK]: jsonContent(
+      listProviderAccountsResponseSchema,
+      "Accounts the bank reports for this connection",
+    ),
+    [HTTPStatusCodes.BAD_REQUEST]: jsonContent(
+      z.object({ error: z.string() }),
+      "Invalid request or provider error",
+    ),
+    [HTTPStatusCodes.UNAUTHORIZED]: jsonContent(z.object({ error: z.string() }), "Unauthorized"),
+    [HTTPStatusCodes.NOT_FOUND]: jsonContent(z.object({ error: z.string() }), "Connection not found"),
+  },
+});
+
+export type ListProviderAccountsRoute = typeof listProviderAccounts;
+
+export const commitAccountsSchema = z.object({
+  accounts: z
+    .array(
+      providerAccountSchema.extend({
+        enabled: z.boolean(),
+      }),
+    )
+    .min(1),
+});
+
+export const commitAccountsResponseSchema = z.object({
+  count: z.number().int().nonnegative(),
+  enabledCount: z.number().int().nonnegative(),
+});
+
+export const commitAccounts = createRoute({
+  tags,
+  path: "/banking/connections/{id}/accounts",
+  method: "post",
+  summary: "Persist the user's account selection for a connection",
+  request: {
+    params: z.object({
+      id: z.uuid(),
+    }),
+    body: {
+      ...jsonContent(commitAccountsSchema, "Selected accounts to save"),
+      required: true,
+    },
+  },
+  responses: {
+    [HTTPStatusCodes.OK]: jsonContent(
+      commitAccountsResponseSchema,
+      "Accounts persisted; connection marked as connected",
+    ),
+    [HTTPStatusCodes.BAD_REQUEST]: jsonContent(
+      z.object({ error: z.string() }),
+      "Invalid payload or connection not pending",
+    ),
+    [HTTPStatusCodes.UNAUTHORIZED]: jsonContent(z.object({ error: z.string() }), "Unauthorized"),
+    [HTTPStatusCodes.NOT_FOUND]: jsonContent(z.object({ error: z.string() }), "Connection not found"),
+  },
+});
+
+export type CommitAccountsRoute = typeof commitAccounts;
+
+export const toggleBankAccount = createRoute({
+  tags,
+  path: "/banking/accounts/{id}",
+  method: "patch",
+  summary: "Enable or disable a bank account",
+  request: {
+    params: z.object({
+      id: z.uuid(),
+    }),
+    body: {
+      ...jsonContent(z.object({ enabled: z.boolean() }), "Enabled flag"),
+      required: true,
+    },
+  },
+  responses: {
+    [HTTPStatusCodes.OK]: jsonContent(
+      z.object({
+        id: z.uuid(),
+        enabled: z.boolean(),
+      }),
+      "Account flag updated",
+    ),
+    [HTTPStatusCodes.BAD_REQUEST]: jsonContent(z.object({ error: z.string() }), "No active space"),
+    [HTTPStatusCodes.UNAUTHORIZED]: jsonContent(z.object({ error: z.string() }), "Unauthorized"),
+    [HTTPStatusCodes.NOT_FOUND]: jsonContent(z.object({ error: z.string() }), "Account not found"),
+  },
+});
+
+export type ToggleBankAccountRoute = typeof toggleBankAccount;

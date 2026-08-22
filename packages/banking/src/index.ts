@@ -13,4 +13,7 @@ export type {
   CreateLinkResponse,
   GetConnectionStatusRequest,
   ConnectionStatus,
+  AccountType,
+  Account,
+  GetAccountsRequest,
 } from "./types";

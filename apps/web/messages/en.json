@@ -38,5 +38,20 @@
   "onboarding_connect_bank_skip_label": "Skip for now",
   "onboarding_connect_bank_read_only_label": "Read-only access",
   "onboarding_connect_bank_encrypted_label": "Encrypted",
-  "onboarding_connect_bank_disconnect_label": "Disconnect anytime"
+  "onboarding_connect_bank_disconnect_label": "Disconnect anytime",
+  "onboarding_select_accounts_title": "Choose accounts",
+  "onboarding_select_accounts_description": "Enable or disable each account. You can change this later.",
+  "onboarding_select_accounts_continue_label": "Continue",
+  "onboarding_select_accounts_saving_label": "Saving",
+  "onboarding_select_accounts_n_of_m": "{enabledCount} of {totalCount}",
+  "onboarding_select_accounts_type_depository": "Depository",
+  "onboarding_select_accounts_type_credit": "Credit",
+  "onboarding_select_accounts_type_loan": "Loan",
+  "onboarding_select_accounts_type_investment": "Investment",
+  "onboarding_select_accounts_type_other": "Other",
+  "onboarding_select_accounts_error_load": "Failed to load accounts. Try again.",
+  "onboarding_select_accounts_try_again": "Try again",
+  "onboarding_select_accounts_empty": "This bank returned no accounts.",
+  "onboarding_select_accounts_missing_connection": "Missing connection. Start by connecting a bank.",
+  "onboarding_select_accounts_toast_success": "Accounts saved"
 }

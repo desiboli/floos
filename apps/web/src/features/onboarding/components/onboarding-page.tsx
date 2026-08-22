@@ -8,9 +8,11 @@ import { useEffect } from "react";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { ModeToggle } from "@/components/mode-toggle";
 import { SelectSpaceDialog } from "@/features/spaces/components/select-space-dialog";
+import { m } from "@/paraglide/messages.js";
 
 import { ConnectBankForm } from "./connect-bank-form";
 import { CreateSpaceForm } from "./create-space-form";
+import { SelectAccountsForm } from "./select-accounts-form";
 
 const STEPS = ["create-space", "connect-bank", "select-accounts", "reconciliation"] as const;
 
@@ -77,17 +79,15 @@ export function OnboardingPage() {
           {s === "create-space" && <CreateSpaceForm />}
           {s === "connect-bank" && <ConnectBankForm />}
           {s === "select-accounts" && connectionId ? (
-            <p className="text-sm text-muted-foreground">
-              Account selection comes next. Connection {connectionId}
-            </p>
+            <SelectAccountsForm connectionId={connectionId} />
           ) : null}
           {s === "select-accounts" && !connectionId ? (
             <div className="flex flex-col gap-3">
               <p className="text-sm text-muted-foreground">
-                Missing connection. Start by connecting a bank.
+                {m.onboarding_select_accounts_missing_connection()}
               </p>
               <Button type="button" onClick={() => goToStep("connect-bank")}>
-                Connect bank
+                {m.onboarding_connect_bank_connect_label()}
               </Button>
             </div>
           ) : null}
