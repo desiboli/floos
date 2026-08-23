@@ -8,11 +8,13 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
+  useSidebar,
 } from "@floos/ui/components/sidebar";
 import { Link } from "@tanstack/react-router";
 import * as React from "react";
 
 import { NavMain } from "@/components/nav-main";
+import { SpaceSwitcher } from "@/features/spaces/components/space-switcher";
 
 const data = {
   navMain: [
@@ -72,6 +74,8 @@ const data = {
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { toggleSidebar } = useSidebar();
+
   return (
     <Sidebar
       collapsible="icon"
@@ -79,19 +83,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       {...props}
     >
       <SidebarHeader>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton size="lg" render={<Link to="/" />}>
-              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                <Icons.floos />
-              </div>
-              <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">Floos</span>
-                <span className="truncate text-xs">Workspace</span>
-              </div>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+        <SpaceSwitcher />
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
@@ -99,9 +91,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton tooltip="Account" render={<Link to="/account" />}>
-              <Icons.settings />
-              <span>Account</span>
+            <SidebarMenuButton tooltip="Collapse Sidebar" onClick={toggleSidebar}>
+              <Icons.sidebar />
+              <span>Collapse Sidebar</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

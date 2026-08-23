@@ -2,6 +2,7 @@ import {
   IconArrowRight,
   IconArrowsSort,
   IconBook,
+  IconCheck,
   IconChevronDown,
   IconChevronRight,
   IconChartHistogram,
@@ -19,6 +20,7 @@ import {
   IconCategory2,
   IconSettings,
   IconSearch,
+  IconSelector,
   IconRefresh,
   IconTrash,
   IconPlugConnected,
@@ -34,6 +36,7 @@ export const Icons = {
   arrowUp: IconArrowUp,
   book: IconBook,
   category: IconCategory2,
+  check: IconCheck,
   chevronDown: IconChevronDown,
   chevronRight: IconChevronRight,
   chartHistogram: IconChartHistogram,
@@ -46,6 +49,7 @@ export const Icons = {
   plus: IconPlus,
   refresh: IconRefresh,
   search: IconSearch,
+  selector: IconSelector,
   settings: IconSettings,
   sun: IconSun,
   deviceDesktop: IconDeviceDesktop,
@@ -91,6 +95,16 @@ export const Icons = {
           </g>
         </g>
       </g>
+    </svg>
+  ),
+  logo: (props: IconProps) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 1666 1240" {...props}>
+      <rect width="502" height="1240" fill="currentColor" rx="251" />
+      <rect width="502" height="1240" x="582" fill="currentColor" rx="251" />
+      <path
+        fill="#e8e4e3"
+        d="M1164 23.928C1164 10.712 1174.71 0 1187.93 0 1451.96 0 1666 214.04 1666 478.072V1190c0 27.61-22.39 50-50 50h-202c-138.07 0-250-111.93-250-250z"
+      />
     </svg>
   ),
   floos: (props: IconProps) => (
