@@ -1,5 +1,7 @@
+import { SidebarProvider, SidebarInset } from "@floos/ui/components/sidebar";
 import { Outlet, createFileRoute, redirect } from "@tanstack/react-router";
 
+import { AppSidebar } from "@/components/app-sidebar";
 import Header from "@/components/header";
 import { spacesQueryOptions } from "@/features/spaces/services/queries";
 
@@ -19,9 +21,21 @@ export const Route = createFileRoute("/_auth/_app")({
 
 function AuthLayout() {
   return (
-    <div className="grid grid-rows-[auto_1fr] h-svh">
-      <Header />
-      <Outlet />
+    // <div className="grid grid-rows-[auto_1fr] h-svh">
+    //   <Header />
+    //   <Outlet />
+    // </div>
+
+    <div className="[--header-height:calc(--spacing(14))]">
+      <SidebarProvider className="flex flex-col">
+        <Header />
+        <div className="flex flex-1">
+          <AppSidebar />
+          <SidebarInset>
+            <Outlet />
+          </SidebarInset>
+        </div>
+      </SidebarProvider>
     </div>
   );
 }

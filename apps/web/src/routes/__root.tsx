@@ -1,5 +1,6 @@
-import { Toaster } from "@floos/ui/components/toast";
 import type { QueryClient } from "@tanstack/react-query";
+
+import { Toaster } from "@floos/ui/components/toast";
 import { HeadContent, Outlet, createRootRouteWithContext } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 
@@ -49,7 +50,7 @@ function RootComponent() {
         </div>
         <Toaster />
       </ThemeProvider>
-      <TanStackRouterDevtools position="bottom-left" />
+      <TanStackRouterDevtools position="bottom-right" />
     </>
   );
 }
