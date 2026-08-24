@@ -32,7 +32,9 @@ function AuthLayout() {
         <div className="flex flex-1">
           <AppSidebar />
           <SidebarInset>
-            <Outlet />
+            <div className="py-4 md:py-8 px-4 md:px-8">
+              <Outlet />
+            </div>
           </SidebarInset>
         </div>
       </SidebarProvider>

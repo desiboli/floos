@@ -121,6 +121,7 @@ export default function UserMenu() {
               });
             }}
           >
+            <Icons.logout />
             Sign Out
           </DropdownMenuItem>
         </DropdownMenuGroup>

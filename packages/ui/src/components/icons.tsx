@@ -9,10 +9,13 @@ import {
   IconDots,
   IconLayoutDashboard,
   IconLoader,
+  IconLogout2,
   IconTransactionDollar,
   IconLayoutSidebar,
   IconArrowUp,
   IconPlus,
+  IconSortDescending,
+  IconSortAscending,
   IconPalette,
   IconSun,
   IconMoonStars,
@@ -25,6 +28,7 @@ import {
   IconTrash,
   IconPlugConnected,
   IconAlertTriangle,
+  IconEyeOff,
 } from "@tabler/icons-react";
 
 type IconProps = React.HTMLAttributes<SVGElement>;
@@ -33,8 +37,11 @@ export const Icons = {
   alertTriangle: IconAlertTriangle,
   arrowRight: IconArrowRight,
   arrowsSort: IconArrowsSort,
+  arrowsSortDown: IconSortDescending,
+  arrowsSortUp: IconSortAscending,
   arrowUp: IconArrowUp,
   book: IconBook,
+  logout: IconLogout2,
   category: IconCategory2,
   check: IconCheck,
   chevronDown: IconChevronDown,
@@ -56,6 +63,7 @@ export const Icons = {
   moonStars: IconMoonStars,
   plugConnected: IconPlugConnected,
   trash: IconTrash,
+  eyeOff: IconEyeOff,
   google: (props: IconProps) => (
     <svg
       viewBox="-0.5 0 48 48"
