@@ -1,6 +1,6 @@
-import { infiniteQueryOptions } from "@tanstack/react-query";
+import { infiniteQueryOptions, queryOptions } from "@tanstack/react-query";
 
-import { getTransactions } from "./api";
+import { getCategories, getTransactions } from "./api";
 import type { TransactionSort } from "./types";
 
 export const TRANSACTIONS_PAGE_SIZE = 50;
@@ -22,5 +22,18 @@ export const transactionsInfiniteQueryOptions = (spaceId: string | null, sort: T
       }),
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    enabled: spaceId !== null,
+    refetchInterval: (query) => {
+      const hasPending = query.state.data?.pages.some((page) =>
+        page.transactions.some((tx) => tx.enrichmentCompletedAt === null),
+      );
+      return hasPending ? 2000 : false;
+    },
+  });
+
+export const categoriesQueryOptions = (spaceId: string | null) =>
+  queryOptions({
+    queryKey: ["categories", spaceId] as const,
+    queryFn: getCategories,
     enabled: spaceId !== null,
   });

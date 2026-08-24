@@ -34,6 +34,7 @@ export const relations = defineRelations(schema, (r) => ({
     bankConnections: r.many.bankConnections(),
     bankAccounts: r.many.bankAccounts(),
     bankTransactions: r.many.bankTransactions(),
+    transactionCategories: r.many.transactionCategories(),
   },
   spaceInvites: {
     space: r.one.spaces({
@@ -91,5 +92,18 @@ export const relations = defineRelations(schema, (r) => ({
       to: r.bankAccounts.id,
       optional: false,
     }),
+  },
+  transactionCategories: {
+    space: r.one.spaces({
+      from: r.transactionCategories.spaceId,
+      to: r.spaces.id,
+      optional: false,
+    }),
+    parent: r.one.transactionCategories({
+      from: r.transactionCategories.parentId,
+      to: r.transactionCategories.id,
+      optional: true,
+    }),
+    children: r.many.transactionCategories(),
   },
 }));

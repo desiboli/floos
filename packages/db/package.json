@@ -21,6 +21,7 @@
     "check-types": "tsc --noEmit"
   },
   "dependencies": {
+    "@floos/categories": "workspace:*",
     "@floos/env": "workspace:*",
     "@neondatabase/serverless": "^1.1.0",
     "dotenv": "catalog:",

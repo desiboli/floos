@@ -4,6 +4,7 @@ import type { Database } from "..";
 
 import { user } from "../schema/auth";
 import { spaceMembers, spaces, type InsertSpace } from "../schema/spaces";
+import { ensureSystemCategoriesForSpace } from "./transaction-categories";
 
 export async function createSpace(
   db: Database,
@@ -30,6 +31,8 @@ export async function createSpace(
       userId: input.userId,
       role: "owner",
     });
+
+    await ensureSystemCategoriesForSpace(tx, created.id);
 
     await tx.update(user).set({ activeSpaceId: created.id }).where(eq(user.id, input.userId));
 

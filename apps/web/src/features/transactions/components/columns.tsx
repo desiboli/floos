@@ -20,6 +20,8 @@ import type { Transaction } from "../services/types";
 
 import { DataTableColumnHeader } from "./data-table-column-header";
 import { type DataTableFeatures } from "./data-table-features";
+import { TransactionCategoryCell } from "./transaction-category-cell";
+import { TransactionMerchantCell } from "./transaction-merchant-cell";
 
 const dateFormatter = new Intl.DateTimeFormat(undefined, {
   month: "short",
@@ -67,15 +69,21 @@ export const columns = columnHelper.columns([
   }),
   columnHelper.accessor("name", {
     header: ({ column }) => <DataTableColumnHeader column={column} title="Name" />,
-    cell: ({ row }) => <div className="truncate">{row.getValue("name")}</div>,
+    cell: ({ row }) => <TransactionMerchantCell transaction={row.original} />,
     enableSorting: false,
     filterFn: (row, _columnId, filterValue) => {
       const query = String(filterValue).trim().toLowerCase();
       if (!query) return true;
       const name = row.original.name.toLowerCase();
+      const merchant = row.original.merchantName?.toLowerCase() ?? "";
       const description = row.original.description?.toLowerCase() ?? "";
-      return name.includes(query) || description.includes(query);
+      return name.includes(query) || merchant.includes(query) || description.includes(query);
     },
+  }),
+  columnHelper.accessor("categorySlug", {
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Category" />,
+    cell: ({ row }) => <TransactionCategoryCell transaction={row.original} />,
+    enableSorting: false,
   }),
   columnHelper.accessor("description", {
     header: ({ column }) => <DataTableColumnHeader column={column} title="Description" />,

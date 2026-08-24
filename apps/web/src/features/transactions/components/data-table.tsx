@@ -40,6 +40,8 @@ function columnWidthClass(columnId: string) {
       return "w-28 shrink-0";
     case "name":
       return "min-w-40 flex-1";
+    case "categorySlug":
+      return "w-44 shrink-0";
     case "description":
       return "min-w-48 flex-1";
     case "accountName":

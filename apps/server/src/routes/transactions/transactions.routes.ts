@@ -20,6 +20,8 @@ export const transactionItemSchema = z.object({
   method: z.string().nullable(),
   counterpartyName: z.string().nullable(),
   merchantName: z.string().nullable(),
+  categorySlug: z.string().nullable(),
+  enrichmentCompletedAt: z.iso.datetime().nullable(),
   balance: z.number().nullable(),
   currencyRate: z.number().nullable(),
   currencySource: z.string().nullable(),
@@ -68,3 +70,34 @@ export const list = createRoute({
 });
 
 export type ListRoute = typeof list;
+
+export const updateTransactionCategorySchema = z.object({
+  categorySlug: z.string().trim().min(1),
+});
+
+export const update = createRoute({
+  tags,
+  path: "/transactions/{id}",
+  method: "patch",
+  summary: "Set the category of a transaction in the active space",
+  request: {
+    params: z.object({
+      id: z.uuid(),
+    }),
+    body: {
+      ...jsonContent(updateTransactionCategorySchema, "The category to assign"),
+      required: true,
+    },
+  },
+  responses: {
+    [HTTPStatusCodes.OK]: jsonContent(transactionItemSchema, "The updated transaction"),
+    [HTTPStatusCodes.BAD_REQUEST]: jsonContent(
+      errorSchema,
+      "Unknown category slug, parent slug, or no active space",
+    ),
+    [HTTPStatusCodes.NOT_FOUND]: jsonContent(errorSchema, "Transaction not found in this space"),
+    [HTTPStatusCodes.UNAUTHORIZED]: jsonContent(errorSchema, "Unauthorized"),
+  },
+});
+
+export type UpdateRoute = typeof update;

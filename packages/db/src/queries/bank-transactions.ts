@@ -163,6 +163,8 @@ export async function listBankTransactionsForSpace(
       method: bankTransactions.method,
       counterpartyName: bankTransactions.counterpartyName,
       merchantName: bankTransactions.merchantName,
+      categorySlug: bankTransactions.categorySlug,
+      enrichmentCompletedAt: bankTransactions.enrichmentCompletedAt,
       balance: bankTransactions.balance,
       currencyRate: bankTransactions.currencyRate,
       currencySource: bankTransactions.currencySource,

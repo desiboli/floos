@@ -103,7 +103,7 @@ export type GetAccountBalanceResponse = {
 
 /**
  * Normalized booked transaction. `id` is persisted as bank_transactions.providerTransactionId.
- * merchantName is reserved for later enrichment — AIS payloads have MCC, not a merchant name.
+ * merchantName is always null from AIS (MCC only). The enrich-transactions job fills it.
  */
 export type Transaction = {
   id: string;

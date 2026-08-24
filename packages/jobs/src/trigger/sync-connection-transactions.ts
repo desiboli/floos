@@ -4,6 +4,7 @@ import { logger, schemaTask } from "@trigger.dev/sdk";
 import { z } from "zod";
 
 import { syncConnection } from "../lib/sync-connection";
+import { enrichTransactionsTask } from "./enrich-transactions";
 
 export const syncConnectionTransactions = schemaTask({
   id: "sync-connection-transactions",
@@ -47,7 +48,16 @@ export const syncConnectionTransactions = schemaTask({
     });
 
     if (result.newTransactionIds.length > 0) {
-      // later: enqueue categorize/enrich
+      const handle = await enrichTransactionsTask.trigger({
+        spaceId: connection.spaceId,
+        transactionIds: result.newTransactionIds,
+      });
+
+      logger.info("Triggered enrichment", {
+        spaceId: connection.spaceId,
+        count: result.newTransactionIds.length,
+        runId: handle.id,
+      });
     }
 
     return result;

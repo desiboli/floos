@@ -1,7 +1,18 @@
-import { date, index, numeric, pgTable, text, timestamp, unique, uuid } from "drizzle-orm/pg-core";
+import {
+  date,
+  foreignKey,
+  index,
+  numeric,
+  pgTable,
+  text,
+  timestamp,
+  unique,
+  uuid,
+} from "drizzle-orm/pg-core";
 
 import { bankAccounts } from "./bank-accounts";
 import { spaces } from "./spaces";
+import { transactionCategories } from "./transaction-categories";
 
 /**
  * Booked transactions imported from a provider for a bank account.
@@ -27,6 +38,8 @@ export const bankTransactions = pgTable(
     method: text("method"),
     counterpartyName: text("counterparty_name"),
     merchantName: text("merchant_name"),
+    categorySlug: text("category_slug"),
+    enrichmentCompletedAt: timestamp("enrichment_completed_at", { withTimezone: true }),
     balance: numeric("balance", { precision: 12, scale: 2 }),
     currencyRate: numeric("currency_rate"),
     currencySource: text("currency_source"),
@@ -53,6 +66,11 @@ export const bankTransactions = pgTable(
       table.amount.desc(),
       table.id.desc(),
     ),
+    foreignKey({
+      name: "bank_transactions_space_id_category_slug_fkey",
+      columns: [table.spaceId, table.categorySlug],
+      foreignColumns: [transactionCategories.spaceId, transactionCategories.slug],
+    }),
   ],
 );
 
