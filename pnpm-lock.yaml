@@ -237,6 +237,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@floos/categories':
+        specifier: workspace:*
+        version: link:../../packages/categories
       '@floos/env':
         specifier: workspace:*
         version: link:../../packages/env

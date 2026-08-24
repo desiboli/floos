@@ -163,7 +163,7 @@ export function ConnectBankForm() {
         <FieldGroup>
           <Field>
             {/* <FieldLabel htmlFor="bank-search">Search</FieldLabel> */}
-            <InputGroup className="w-full border-input dark:bg-input/30 focus-within:border-ring focus-within:border-b-ring focus-within:ring-1 focus-within:ring-ring/50">
+            <InputGroup>
               <InputGroupInput
                 id="bank-search"
                 value={searchQuery}

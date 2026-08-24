@@ -12,6 +12,7 @@
     "machine-translate": "inlang machine translate --project project.inlang"
   },
   "dependencies": {
+    "@floos/categories": "workspace:*",
     "@floos/env": "workspace:*",
     "@floos/ui": "workspace:*",
     "@polar-sh/better-auth": "catalog:",

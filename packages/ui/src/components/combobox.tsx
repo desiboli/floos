@@ -54,15 +54,7 @@ function ComboboxInput({
   showClear?: boolean;
 }) {
   return (
-    <InputGroup
-      className={cn(
-        "w-full border-input dark:bg-input/30",
-        "focus-within:border-ring focus-within:border-b-ring focus-within:ring-1 focus-within:ring-ring/50",
-        "has-[[data-slot][aria-invalid=true]]:border-destructive has-[[data-slot][aria-invalid=true]]:border-b-destructive has-[[data-slot][aria-invalid=true]]:ring-1 has-[[data-slot][aria-invalid=true]]:ring-destructive/20",
-        "dark:has-[[data-slot][aria-invalid=true]]:border-destructive/50 dark:has-[[data-slot][aria-invalid=true]]:border-b-destructive/50 dark:has-[[data-slot][aria-invalid=true]]:ring-destructive/40",
-        className,
-      )}
-    >
+    <InputGroup className={cn("w-full", className)}>
       <ComboboxPrimitive.Input render={<InputGroupInput disabled={disabled} />} {...props} />
       <InputGroupAddon align="inline-end">
         {showTrigger && (

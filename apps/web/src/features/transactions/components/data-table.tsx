@@ -1,6 +1,6 @@
 import { Button } from "@floos/ui/components/button";
 import { Icons } from "@floos/ui/components/icons";
-import { Input } from "@floos/ui/components/input";
+import { InputGroup, InputGroupAddon, InputGroupInput } from "@floos/ui/components/input-group";
 import {
   Table,
   TableBody,
@@ -135,13 +135,17 @@ export function DataTable<TData extends RowWithId>({
   return (
     <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
       <div className="flex shrink-0 items-center gap-2 pb-4">
-        <Input
-          placeholder="Filter transactions…"
-          aria-label="Filter transactions"
-          value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
-          onChange={(event) => table.getColumn("name")?.setFilterValue(event.target.value)}
-          className="max-w-sm"
-        />
+        <InputGroup className="max-w-sm">
+          <InputGroupInput
+            placeholder="Search transactions…"
+            aria-label="Search transactions"
+            value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
+            onChange={(event) => table.getColumn("name")?.setFilterValue(event.target.value)}
+          />
+          <InputGroupAddon>
+            <Icons.search />
+          </InputGroupAddon>
+        </InputGroup>
         <DataTableViewOptions table={table} />
       </div>
       <div className="relative min-h-0 min-w-0 flex-1">

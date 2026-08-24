@@ -11,11 +11,14 @@ import {
 import { Skeleton } from "@floos/ui/components/skeleton";
 import { useMemo } from "react";
 
-import { useCategories } from "../hooks/use-categories";
-import { useUpdateTransactionCategory } from "../hooks/use-update-transaction-category";
-import type { Category, CategoryTree, Transaction } from "../services/types";
+import type { Category, CategoryTree } from "@/features/categories/services/types";
 
-import { CategoryChip } from "./category-chip";
+import { CategoryChip } from "@/features/categories/components/category-chip";
+import { useCategories } from "@/features/categories/hooks/use-categories";
+
+import type { Transaction } from "../services/types";
+
+import { useUpdateTransactionCategory } from "../hooks/use-update-transaction-category";
 
 function flattenCategories(categories: CategoryTree[]) {
   const bySlug = new Map<string, Category>();

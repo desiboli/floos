@@ -1,9 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/_auth/_app/transactions/categories/")({
-  component: RouteComponent,
-});
+import { CategoriesPage } from "@/features/categories";
 
-function RouteComponent() {
-  return <div>Hello "/_auth/_app/transactions/categories/"!</div>;
-}
+export const Route = createFileRoute("/_auth/_app/transactions/categories/")({
+  component: CategoriesPage,
+});
