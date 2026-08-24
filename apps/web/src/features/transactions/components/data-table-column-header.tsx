@@ -2,6 +2,7 @@ import { Button } from "@floos/ui/components/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
@@ -12,10 +13,8 @@ import { type Column, type RowData } from "@tanstack/react-table";
 
 import { type DataTableFeatures } from "./data-table-features";
 
-interface DataTableColumnHeaderProps<
-  TData extends RowData,
-  TValue,
-> extends React.HTMLAttributes<HTMLDivElement> {
+interface DataTableColumnHeaderProps<TData extends RowData, TValue>
+  extends React.HTMLAttributes<HTMLDivElement> {
   column: Column<DataTableFeatures, TData, TValue>;
   title: string;
 }
@@ -39,27 +38,29 @@ export function DataTableColumnHeader<TData extends RowData, TValue>({
         >
           <span>{title}</span>
           {column.getIsSorted() === "desc" ? (
-            <Icons.arrowsSortDown />
+            <Icons.arrowsSortDown data-icon="inline-end" />
           ) : column.getIsSorted() === "asc" ? (
-            <Icons.arrowsSortUp />
+            <Icons.arrowsSortUp data-icon="inline-end" />
           ) : (
-            <Icons.arrowsSort />
+            <Icons.arrowsSort data-icon="inline-end" />
           )}
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start">
-          <DropdownMenuItem onClick={() => column.toggleSorting(false)}>
-            <Icons.arrowsSortUp />
-            Asc
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => column.toggleSorting(true)}>
-            <Icons.arrowsSortDown />
-            Desc
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => column.toggleVisibility(false)}>
-            <Icons.eyeOff />
-            Hide
-          </DropdownMenuItem>
+          <DropdownMenuGroup>
+            <DropdownMenuItem onClick={() => column.toggleSorting(false)}>
+              <Icons.arrowsSortUp />
+              Asc
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => column.toggleSorting(true)}>
+              <Icons.arrowsSortDown />
+              Desc
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => column.toggleVisibility(false)}>
+              <Icons.eyeOff />
+              Hide
+            </DropdownMenuItem>
+          </DropdownMenuGroup>
         </DropdownMenuContent>
       </DropdownMenu>
     </div>

@@ -41,6 +41,18 @@ export const bankTransactions = pgTable(
     index("bank_transactions_space_id_idx").on(table.spaceId),
     index("bank_transactions_bank_account_id_idx").on(table.bankAccountId),
     index("bank_transactions_date_idx").on(table.date),
+    // Serve the keyset list query, one index per sortable column. Postgres scans
+    // these backwards for the ascending direction, so one index covers both.
+    index("bank_transactions_space_id_date_id_idx").on(
+      table.spaceId,
+      table.date.desc(),
+      table.id.desc(),
+    ),
+    index("bank_transactions_space_id_amount_id_idx").on(
+      table.spaceId,
+      table.amount.desc(),
+      table.id.desc(),
+    ),
   ],
 );
 

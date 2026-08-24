@@ -62,7 +62,7 @@ export function OnboardingPage() {
     <div className="grid min-h-svh lg:grid-cols-2">
       <div className="relative hidden bg-muted lg:block">
         <div className="absolute top-4 left-4 z-10">
-          <a href="#" className="flex items-center gap-2 font-medium text-white">
+          <a href="/" className="flex items-center gap-2 font-medium text-white">
             <Icons.floos className="size-8" />
           </a>
         </div>

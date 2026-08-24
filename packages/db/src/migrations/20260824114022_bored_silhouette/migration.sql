@@ -1,0 +1,1 @@
+CREATE INDEX "bank_transactions_space_id_amount_id_idx" ON "bank_transactions" ("space_id","amount" DESC NULLS LAST,"id" DESC NULLS LAST);

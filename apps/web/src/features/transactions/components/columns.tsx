@@ -1,3 +1,4 @@
+import { Badge } from "@floos/ui/components/badge";
 import { Button } from "@floos/ui/components/button";
 import { Checkbox } from "@floos/ui/components/checkbox";
 import {
@@ -10,23 +11,29 @@ import {
   DropdownMenuTrigger,
 } from "@floos/ui/components/dropdown-menu";
 import { Icons } from "@floos/ui/components/icons";
+import { cn } from "@floos/ui/lib/utils";
 import { createColumnHelper } from "@tanstack/react-table";
+
+import { formatAmount } from "@/lib/format";
+
+import type { Transaction } from "../services/types";
 
 import { DataTableColumnHeader } from "./data-table-column-header";
 import { type DataTableFeatures } from "./data-table-features";
 
-// This type is used to define the shape of our data.
-// You can use a Zod schema here if you want.
-export type Transaction = {
-  id: string;
-  date: string;
-  description: string;
-  amount: number;
-  category: string;
-  account: string;
-};
+const dateFormatter = new Intl.DateTimeFormat(undefined, {
+  month: "short",
+  day: "numeric",
+  year: "numeric",
+  timeZone: "UTC",
+});
 
-// Use `accessor` for data columns and `display` for columns without one.
+function formatTransactionDate(value: string) {
+  const date = new Date(`${value}T00:00:00.000Z`);
+  if (Number.isNaN(date.getTime())) return value;
+  return dateFormatter.format(date);
+}
+
 const columnHelper = createColumnHelper<DataTableFeatures, Transaction>();
 
 export const columns = columnHelper.columns([
@@ -34,9 +41,9 @@ export const columns = columnHelper.columns([
     id: "select",
     header: ({ table }) => (
       <Checkbox
-        checked={table.getIsAllPageRowsSelected()}
-        indeterminate={table.getIsSomePageRowsSelected() && !table.getIsAllPageRowsSelected()}
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+        checked={table.getIsAllRowsSelected()}
+        indeterminate={table.getIsSomeRowsSelected() && !table.getIsAllRowsSelected()}
+        onCheckedChange={(value) => table.toggleAllRowsSelected(!!value)}
         aria-label="Select all"
       />
     ),
@@ -51,48 +58,85 @@ export const columns = columnHelper.columns([
     enableHiding: false,
   }),
   columnHelper.accessor("date", {
-    header: "Date",
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Date" />,
+    cell: ({ row }) => (
+      <div className="whitespace-nowrap tabular-nums">
+        {formatTransactionDate(row.getValue("date"))}
+      </div>
+    ),
+  }),
+  columnHelper.accessor("name", {
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Name" />,
+    cell: ({ row }) => <div className="truncate">{row.getValue("name")}</div>,
+    enableSorting: false,
+    filterFn: (row, _columnId, filterValue) => {
+      const query = String(filterValue).trim().toLowerCase();
+      if (!query) return true;
+      const name = row.original.name.toLowerCase();
+      const description = row.original.description?.toLowerCase() ?? "";
+      return name.includes(query) || description.includes(query);
+    },
   }),
   columnHelper.accessor("description", {
     header: ({ column }) => <DataTableColumnHeader column={column} title="Description" />,
+    cell: ({ row }) => (
+      <div className="truncate text-muted-foreground">{row.getValue("description") ?? "—"}</div>
+    ),
+    enableSorting: false,
   }),
   columnHelper.accessor("amount", {
-    header: () => <div className="">Amount</div>,
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Amount" />,
     cell: ({ row }) => {
-      const amount = parseFloat(row.getValue("amount"));
-      const formatted = new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: "USD",
-      }).format(amount);
+      const amount = row.original.amount;
 
-      return <div className="font-medium">{formatted}</div>;
+      return (
+        <div className={cn("tabular-nums", amount > 0 && "text-success")}>
+          {formatAmount(amount, row.original.currency)}
+        </div>
+      );
     },
   }),
-  columnHelper.accessor("category", {
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Category" />,
-  }),
-  columnHelper.accessor("account", {
+  columnHelper.accessor("accountName", {
     header: ({ column }) => <DataTableColumnHeader column={column} title="Account" />,
+    cell: ({ row }) => <div className="truncate">{row.getValue("accountName")}</div>,
+    enableSorting: false,
+  }),
+  columnHelper.accessor("status", {
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Status" />,
+    enableSorting: false,
+    cell: ({ row }) => {
+      const status = row.getValue("status") as Transaction["status"];
+      return (
+        <Badge variant={status === "pending" ? "secondary" : "outline"} className="capitalize">
+          {status}
+        </Badge>
+      );
+    },
   }),
   columnHelper.display({
     id: "actions",
+    enableHiding: false,
     cell: ({ row }) => {
       const transaction = row.original;
 
       return (
         <DropdownMenu>
-          <DropdownMenuTrigger render={<Button variant="ghost" className="h-8 w-8 p-0" />}>
-            <span className="sr-only">Open menu</span>
-            <Icons.dots className="h-4 w-4" />
-          </DropdownMenuTrigger>
+          <DropdownMenuTrigger
+            render={
+              <Button variant="ghost" size="icon-sm">
+                <span className="sr-only">Open menu</span>
+                <Icons.dots />
+              </Button>
+            }
+          />
           <DropdownMenuContent align="end">
             <DropdownMenuGroup>
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
               <DropdownMenuItem onClick={() => navigator.clipboard.writeText(transaction.id)}>
-                Copy link
+                Copy transaction ID
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>View details</DropdownMenuItem>
+              <DropdownMenuItem disabled>View details</DropdownMenuItem>
             </DropdownMenuGroup>
           </DropdownMenuContent>
         </DropdownMenu>
