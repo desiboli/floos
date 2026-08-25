@@ -1,4 +1,4 @@
-import { and, eq, sql } from "drizzle-orm";
+import { and, asc, eq, sql } from "drizzle-orm";
 
 import type { Database } from "..";
 
@@ -40,18 +40,27 @@ export async function createBankAccounts(db: Database, accounts: CreateBankAccou
 }
 
 export async function getBankAccountsByConnection(db: Database, bankConnectionId: string) {
-  return db.select().from(bankAccounts).where(eq(bankAccounts.bankConnectionId, bankConnectionId));
+  return db
+    .select()
+    .from(bankAccounts)
+    .where(eq(bankAccounts.bankConnectionId, bankConnectionId))
+    .orderBy(asc(bankAccounts.createdAt), asc(bankAccounts.id));
 }
 
 export async function listBankAccountsBySpace(db: Database, spaceId: string) {
-  return db.select().from(bankAccounts).where(eq(bankAccounts.spaceId, spaceId));
+  return db
+    .select()
+    .from(bankAccounts)
+    .where(eq(bankAccounts.spaceId, spaceId))
+    .orderBy(asc(bankAccounts.createdAt), asc(bankAccounts.id));
 }
 
 export async function getEnabledBankAccountsByConnection(db: Database, bankConnectionId: string) {
   return db
     .select()
     .from(bankAccounts)
-    .where(and(eq(bankAccounts.bankConnectionId, bankConnectionId), eq(bankAccounts.enabled, true)));
+    .where(and(eq(bankAccounts.bankConnectionId, bankConnectionId), eq(bankAccounts.enabled, true)))
+    .orderBy(asc(bankAccounts.createdAt), asc(bankAccounts.id));
 }
 
 export async function updateBankAccountBalances(

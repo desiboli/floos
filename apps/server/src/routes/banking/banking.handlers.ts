@@ -25,7 +25,7 @@ import type {
   syncConnectionTransactions,
 } from "@floos/jobs";
 import { generateCronTag } from "@floos/jobs/generate-cron-tag";
-import { schedules, tasks } from "@trigger.dev/sdk";
+import { idempotencyKeys, schedules, tasks } from "@trigger.dev/sdk";
 
 import type { AppRouteHandler } from "../../lib/types";
 import type {
@@ -658,6 +658,9 @@ export const toggleBankAccount: AppRouteHandler<ToggleBankAccountRoute> = async 
   return c.json({ id: updated.id, enabled: updated.enabled }, HTTPStatusCodes.OK);
 };
 
+/** Settings refresh uses the short window, not full history. Matches Trigger idempotency TTL. */
+const MANUAL_SYNC_COOLDOWN_MS = 15 * 60 * 1000;
+
 export const syncConnection: AppRouteHandler<SyncConnectionRoute> = async (c) => {
   const user = c.get("user");
 
@@ -682,9 +685,24 @@ export const syncConnection: AppRouteHandler<SyncConnectionRoute> = async (c) =>
     return c.json({ error: "Connection is not connected" }, HTTPStatusCodes.BAD_REQUEST);
   }
 
+  if (
+    connection.lastSyncAt &&
+    Date.now() - connection.lastSyncAt.getTime() < MANUAL_SYNC_COOLDOWN_MS
+  ) {
+    return c.json(
+      { error: "Already synced recently. Try again in a few minutes." },
+      HTTPStatusCodes.TOO_MANY_REQUESTS,
+    );
+  }
+
+  const idempotencyKey = await idempotencyKeys.create(`manual-sync:${connection.id}`, {
+    scope: "global",
+  });
+
   const handle = await tasks.trigger<typeof syncConnectionTransactions>(
     "sync-connection-transactions",
-    { connectionId: connection.id, manualSync: true },
+    { connectionId: connection.id, manualSync: false },
+    { idempotencyKey, idempotencyKeyTTL: "15m" },
   );
 
   return c.json({ queued: true as const, runId: handle.id }, HTTPStatusCodes.ACCEPTED);

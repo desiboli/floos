@@ -84,7 +84,10 @@ export const reconnectLink = createRoute({
       "Invalid request or connection not ready to reconnect",
     ),
     [HTTPStatusCodes.UNAUTHORIZED]: jsonContent(z.object({ error: z.string() }), "Unauthorized"),
-    [HTTPStatusCodes.NOT_FOUND]: jsonContent(z.object({ error: z.string() }), "Connection not found"),
+    [HTTPStatusCodes.NOT_FOUND]: jsonContent(
+      z.object({ error: z.string() }),
+      "Connection not found",
+    ),
   },
 });
 
@@ -112,7 +115,10 @@ export const deleteConnection = createRoute({
     ),
     [HTTPStatusCodes.BAD_REQUEST]: jsonContent(z.object({ error: z.string() }), "No active space"),
     [HTTPStatusCodes.UNAUTHORIZED]: jsonContent(z.object({ error: z.string() }), "Unauthorized"),
-    [HTTPStatusCodes.NOT_FOUND]: jsonContent(z.object({ error: z.string() }), "Connection not found"),
+    [HTTPStatusCodes.NOT_FOUND]: jsonContent(
+      z.object({ error: z.string() }),
+      "Connection not found",
+    ),
   },
 });
 
@@ -217,7 +223,10 @@ export const listProviderAccounts = createRoute({
       "Invalid request or provider error",
     ),
     [HTTPStatusCodes.UNAUTHORIZED]: jsonContent(z.object({ error: z.string() }), "Unauthorized"),
-    [HTTPStatusCodes.NOT_FOUND]: jsonContent(z.object({ error: z.string() }), "Connection not found"),
+    [HTTPStatusCodes.NOT_FOUND]: jsonContent(
+      z.object({ error: z.string() }),
+      "Connection not found",
+    ),
   },
 });
 
@@ -263,7 +272,10 @@ export const commitAccounts = createRoute({
       "Invalid payload or connection not pending",
     ),
     [HTTPStatusCodes.UNAUTHORIZED]: jsonContent(z.object({ error: z.string() }), "Unauthorized"),
-    [HTTPStatusCodes.NOT_FOUND]: jsonContent(z.object({ error: z.string() }), "Connection not found"),
+    [HTTPStatusCodes.NOT_FOUND]: jsonContent(
+      z.object({ error: z.string() }),
+      "Connection not found",
+    ),
   },
 });
 
@@ -273,7 +285,7 @@ export const syncConnection = createRoute({
   tags,
   path: "/banking/connections/{id}/sync",
   method: "post",
-  summary: "Queue a manual full-history sync for a bank connection",
+  summary: "Queue a short-window transaction sync for a bank connection",
   request: {
     params: z.object({
       id: z.uuid(),
@@ -286,7 +298,14 @@ export const syncConnection = createRoute({
       "No active space or connection not connected",
     ),
     [HTTPStatusCodes.UNAUTHORIZED]: jsonContent(z.object({ error: z.string() }), "Unauthorized"),
-    [HTTPStatusCodes.NOT_FOUND]: jsonContent(z.object({ error: z.string() }), "Connection not found"),
+    [HTTPStatusCodes.NOT_FOUND]: jsonContent(
+      z.object({ error: z.string() }),
+      "Connection not found",
+    ),
+    [HTTPStatusCodes.TOO_MANY_REQUESTS]: jsonContent(
+      z.object({ error: z.string() }),
+      "Connection was synced recently",
+    ),
   },
 });
 
@@ -331,7 +350,10 @@ export const listConnectionTransactions = createRoute({
     ),
     [HTTPStatusCodes.BAD_REQUEST]: jsonContent(z.object({ error: z.string() }), "No active space"),
     [HTTPStatusCodes.UNAUTHORIZED]: jsonContent(z.object({ error: z.string() }), "Unauthorized"),
-    [HTTPStatusCodes.NOT_FOUND]: jsonContent(z.object({ error: z.string() }), "Connection not found"),
+    [HTTPStatusCodes.NOT_FOUND]: jsonContent(
+      z.object({ error: z.string() }),
+      "Connection not found",
+    ),
   },
 });
 

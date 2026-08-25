@@ -41,8 +41,8 @@ function isDeadConsent(error: unknown) {
  * Refresh balances, then fetch provider transactions for enabled accounts.
  *
  * `latest: !manualSync`
- * - manualSync true  → full history (initial / user-triggered)
- * - manualSync false → short window (~5 days)
+ * - manualSync true  → full history (initial connect / reconnect)
+ * - manualSync false → short window (~5 days; cron and settings refresh)
  */
 export async function syncConnection(
   db: Database,
