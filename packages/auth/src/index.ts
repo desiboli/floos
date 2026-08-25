@@ -45,7 +45,7 @@ export function createAuth() {
           checkout({
             products: [
               {
-                productId: "your-product-id",
+                productId: env.POLAR_PRODUCT_ID,
                 slug: "pro",
               },
             ],

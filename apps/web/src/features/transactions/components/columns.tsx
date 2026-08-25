@@ -80,6 +80,18 @@ export const columns = columnHelper.columns([
       return name.includes(query) || merchant.includes(query) || description.includes(query);
     },
   }),
+  columnHelper.accessor("amount", {
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Amount" />,
+    cell: ({ row }) => {
+      const amount = row.original.amount;
+
+      return (
+        <div className={cn("tabular-nums font-mono", amount > 0 && "text-success")}>
+          {formatAmount(amount, row.original.currency)}
+        </div>
+      );
+    },
+  }),
   columnHelper.accessor("categorySlug", {
     header: ({ column }) => <DataTableColumnHeader column={column} title="Category" />,
     cell: ({ row }) => <TransactionCategoryCell transaction={row.original} />,
@@ -92,21 +104,18 @@ export const columns = columnHelper.columns([
     ),
     enableSorting: false,
   }),
-  columnHelper.accessor("amount", {
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Amount" />,
-    cell: ({ row }) => {
-      const amount = row.original.amount;
-
-      return (
-        <div className={cn("tabular-nums", amount > 0 && "text-success")}>
-          {formatAmount(amount, row.original.currency)}
-        </div>
-      );
-    },
-  }),
   columnHelper.accessor("accountName", {
     header: ({ column }) => <DataTableColumnHeader column={column} title="Account" />,
     cell: ({ row }) => <div className="truncate">{row.getValue("accountName")}</div>,
+    enableSorting: false,
+  }),
+  columnHelper.accessor("method", {
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Method" />,
+    cell: ({ row }) => (
+      <div className="truncate font-mono text-muted-foreground">
+        {row.getValue("method") ?? "—"}
+      </div>
+    ),
     enableSorting: false,
   }),
   columnHelper.accessor("status", {
@@ -114,11 +123,7 @@ export const columns = columnHelper.columns([
     enableSorting: false,
     cell: ({ row }) => {
       const status = row.getValue("status") as Transaction["status"];
-      return (
-        <Badge variant={status === "pending" ? "secondary" : "outline"} className="capitalize">
-          {status}
-        </Badge>
-      );
+      return <Badge variant={status === "pending" ? "secondary" : "outline"}>{status}</Badge>;
     },
   }),
   columnHelper.display({
@@ -133,7 +138,7 @@ export const columns = columnHelper.columns([
             render={
               <Button variant="ghost" size="icon-sm">
                 <span className="sr-only">Open menu</span>
-                <Icons.dots />
+                <Icons.dots className="size-4" />
               </Button>
             }
           />

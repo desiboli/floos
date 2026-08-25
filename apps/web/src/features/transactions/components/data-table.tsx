@@ -46,10 +46,12 @@ function columnWidthClass(columnId: string) {
       return "min-w-48 flex-1";
     case "accountName":
       return "w-44 shrink-0";
+    case "method":
+      return "w-36 shrink-0";
     case "status":
       return "w-28 shrink-0";
     case "amount":
-      return "w-32 shrink-0 justify-end";
+      return "w-32 shrink-0";
     default:
       return "min-w-28 shrink-0";
   }
@@ -78,7 +80,9 @@ export function DataTable<TData extends RowWithId>({
 }: DataTableProps<TData>) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [columnVisibility, setColumnVisibility] = useState<ColumnVisibilityState>({});
+  const [columnVisibility, setColumnVisibility] = useState<ColumnVisibilityState>({
+    status: false,
+  });
   const [rowSelection, setRowSelection] = useState({});
 
   const table = useTable({

@@ -1,19 +1,17 @@
 import { Button } from "@floos/ui/components/button";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuLabel,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuTrigger,
-} from "@floos/ui/components/dropdown-menu";
+  Popover,
+  PopoverContent,
+  PopoverTitle,
+  PopoverTrigger,
+} from "@floos/ui/components/popover";
 import { Skeleton } from "@floos/ui/components/skeleton";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 import type { Category, CategoryTree } from "@/features/categories/services/types";
 
 import { CategoryChip } from "@/features/categories/components/category-chip";
+import { CategoryPicker } from "@/features/categories/components/category-picker";
 import { useCategories } from "@/features/categories/hooks/use-categories";
 
 import type { Transaction } from "../services/types";
@@ -23,27 +21,20 @@ import { useUpdateTransactionCategory } from "../hooks/use-update-transaction-ca
 function flattenCategories(categories: CategoryTree[]) {
   const bySlug = new Map<string, Category>();
   for (const parent of categories) {
-    for (const child of parent.children) {
+    const { children, ...record } = parent;
+    bySlug.set(parent.slug, record);
+    for (const child of children) {
       bySlug.set(child.slug, child);
     }
   }
   return bySlug;
 }
 
-function ColorDot({ color }: { color: string | null }) {
-  return (
-    <span
-      className="size-2.5 shrink-0 rounded-full bg-muted-foreground"
-      style={color ? { backgroundColor: color } : undefined}
-      aria-hidden
-    />
-  );
-}
-
 export function TransactionCategoryCell({ transaction }: { transaction: Transaction }) {
   const { categories, isPending } = useCategories();
   const lookup = useMemo(() => flattenCategories(categories), [categories]);
   const { mutate, isPending: isSaving } = useUpdateTransactionCategory();
+  const [open, setOpen] = useState(false);
 
   if (isPending) {
     return <Skeleton className="h-4 w-20" />;
@@ -53,9 +44,16 @@ export function TransactionCategoryCell({ transaction }: { transaction: Transact
   const waitingForEnrichment =
     !transaction.categorySlug && transaction.enrichmentCompletedAt === null;
 
+  const handleSelect = (slug: string) => {
+    if (slug !== transaction.categorySlug) {
+      mutate({ id: transaction.id, categorySlug: slug });
+    }
+    setOpen(false);
+  };
+
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger
         disabled={isSaving}
         render={
           <Button
@@ -74,28 +72,15 @@ export function TransactionCategoryCell({ transaction }: { transaction: Transact
         ) : (
           <span className="text-muted-foreground">—</span>
         )}
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="w-56">
-        <DropdownMenuRadioGroup
-          value={transaction.categorySlug ?? ""}
-          onValueChange={(slug) => {
-            if (!slug || slug === transaction.categorySlug) return;
-            mutate({ id: transaction.id, categorySlug: slug });
-          }}
-        >
-          {categories.map((parent) => (
-            <DropdownMenuGroup key={parent.slug}>
-              <DropdownMenuLabel>{parent.name}</DropdownMenuLabel>
-              {parent.children.map((child) => (
-                <DropdownMenuRadioItem key={child.slug} value={child.slug}>
-                  <ColorDot color={child.color} />
-                  {child.name}
-                </DropdownMenuRadioItem>
-              ))}
-            </DropdownMenuGroup>
-          ))}
-        </DropdownMenuRadioGroup>
-      </DropdownMenuContent>
-    </DropdownMenu>
+      </PopoverTrigger>
+      <PopoverContent align="start" className="w-64 gap-0 overflow-hidden p-0" initialFocus={false}>
+        <PopoverTitle className="sr-only">Change category</PopoverTitle>
+        <CategoryPicker
+          categories={categories}
+          onSelect={handleSelect}
+          value={transaction.categorySlug}
+        />
+      </PopoverContent>
+    </Popover>
   );
 }

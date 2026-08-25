@@ -8,6 +8,7 @@ export const env = createEnv({
     BETTER_AUTH_SECRET: z.string().min(32),
     BETTER_AUTH_URL: z.url(),
     POLAR_ACCESS_TOKEN: z.string().min(1),
+    POLAR_PRODUCT_ID: z.uuid(),
     POLAR_SUCCESS_URL: z.url(),
     GOOGLE_CLIENT_ID: z.string().min(1),
     GOOGLE_CLIENT_SECRET: z.string().min(1),
