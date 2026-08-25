@@ -26,9 +26,12 @@ export type EBAuthResponse = {
   authorization_id: string;
 };
 
-/** POST /sessions — callback `code` → session_id */
+/** POST /sessions — callback `code` → session_id + access window */
 export type EBSessionResponse = {
   session_id: string;
+  access?: {
+    valid_until: string;
+  };
 };
 
 export type EBAccount = {

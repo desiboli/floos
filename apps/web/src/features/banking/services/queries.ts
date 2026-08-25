@@ -1,6 +1,13 @@
 import { queryOptions } from "@tanstack/react-query";
 
-import { getConnectionTransactions, getProviderAccounts } from "./api";
+import { getConnectionTransactions, getProviderAccounts, listBankConnections } from "./api";
+
+export const bankConnectionsQueryOptions = (spaceId: string | null) =>
+  queryOptions({
+    queryKey: ["banking", "connections", spaceId],
+    queryFn: listBankConnections,
+    enabled: spaceId !== null,
+  });
 
 export const providerAccountsQueryOptions = (connectionId: string) =>
   queryOptions({

@@ -12,12 +12,14 @@ import {
   updateBankConnectionLink,
   getBankConnectionById,
   getEnabledBankAccountsByConnection,
+  listBankAccountsBySpace,
+  listBankConnectionsBySpace,
   listBankTransactionsByConnection,
   updateBankAccountEnabled,
   updateBankConnectionStatus,
 } from "@floos/db/queries";
 import { env } from "@floos/env/server";
-import type { syncConnectionTransactions } from "@floos/jobs";
+import type { reconnectConnection, syncConnectionTransactions } from "@floos/jobs";
 import { generateCronTag } from "@floos/jobs/generate-cron-tag";
 import { schedules, tasks } from "@trigger.dev/sdk";
 
@@ -27,7 +29,9 @@ import type {
   CommitAccountsRoute,
   CreateLinkRoute,
   ListConnectionTransactionsRoute,
+  ListConnectionsRoute,
   ListProviderAccountsRoute,
+  ReconnectLinkRoute,
   SyncConnectionRoute,
   ToggleBankAccountRoute,
 } from "./banking.routes";
@@ -38,6 +42,18 @@ function getBankingCallbackUrl() {
   return new URL("/banking/callback", env.BETTER_AUTH_URL).toString();
 }
 
+function encodeCallbackState(connectionId: string, origin: string, reconnect = false) {
+  const encodedOrigin = Buffer.from(origin, "utf8").toString("base64url");
+  return reconnect ? `${connectionId}.${encodedOrigin}.reconnect` : `${connectionId}.${encodedOrigin}`;
+}
+
+function parseCallbackState(stateRaw: string) {
+  const [connectionId = "", encodedOrigin = "", flag = ""] = stateRaw.split(".");
+  const decoded = encodedOrigin ? Buffer.from(encodedOrigin, "base64url").toString("utf8") : "/";
+  const origin = decoded.startsWith("/") ? decoded : "/";
+  return { connectionId, origin, isReconnect: flag === "reconnect" };
+}
+
 function buildWebRedirect(origin: string, extra: Record<string, string>) {
   const safeOrigin = origin.startsWith("/") ? origin : "/";
   const url = new URL(safeOrigin, env.CORS_ORIGIN);
@@ -45,6 +61,33 @@ function buildWebRedirect(origin: string, extra: Record<string, string>) {
     url.searchParams.set(key, value);
   }
   return url.toString();
+}
+
+type CatalogInstitution = {
+  id: string;
+  name: string;
+  provider: "gocardless" | "enablebanking";
+  countries: string[];
+  availableHistory: number | null;
+  psuType: string | null;
+};
+
+async function startProviderAuth(
+  institution: CatalogInstitution,
+  connectionId: string,
+  origin: string,
+  reconnect = false,
+) {
+  const provider = new Provider({ provider: institution.provider });
+  return provider.createLink({
+    institutionId: institution.id,
+    redirect: getBankingCallbackUrl(),
+    reference: encodeCallbackState(connectionId, origin, reconnect),
+    institutionName: institution.name,
+    psuType: institution.psuType ?? undefined,
+    countryCode: institution.countries[0],
+    transactionTotalDays: institution.availableHistory ?? undefined,
+  });
 }
 
 export const createLink: AppRouteHandler<CreateLinkRoute> = async (c) => {
@@ -74,6 +117,13 @@ export const createLink: AppRouteHandler<CreateLinkRoute> = async (c) => {
     return c.json({ error: "This bank is already connected" }, HTTPStatusCodes.BAD_REQUEST);
   }
 
+  if (existing?.status === "disconnected") {
+    return c.json(
+      { error: "This bank is disconnected. Reconnect it instead." },
+      HTTPStatusCodes.BAD_REQUEST,
+    );
+  }
+
   await deletePendingBankConnection(db, activeSpaceId, institutionId);
 
   const connection = await createBankConnection(db, {
@@ -86,20 +136,8 @@ export const createLink: AppRouteHandler<CreateLinkRoute> = async (c) => {
     referenceId: null,
   });
 
-  const encodedOrigin = Buffer.from(origin, "utf8").toString("base64url");
-  const stateToken = `${connection.id}.${encodedOrigin}`;
-
   try {
-    const provider = new Provider({ provider: institution.provider });
-    const link = await provider.createLink({
-      institutionId,
-      redirect: getBankingCallbackUrl(),
-      reference: stateToken,
-      institutionName: institution.name,
-      psuType: institution.psuType ?? undefined,
-      countryCode: institution.countries[0],
-      transactionTotalDays: institution.availableHistory ?? undefined,
-    });
+    const link = await startProviderAuth(institution, connection.id, origin);
 
     await updateBankConnectionLink(db, connection.id, {
       accessToken: link.ref,
@@ -118,9 +156,7 @@ export const createLink: AppRouteHandler<CreateLinkRoute> = async (c) => {
 export const callback: AppRouteHandler<CallbackRoute> = async (c) => {
   const query = c.req.valid("query");
   const stateRaw = query.state ?? query.ref ?? "";
-  const [connectionId = "", encodedOrigin = ""] = stateRaw.split(".");
-  const decoded = encodedOrigin ? Buffer.from(encodedOrigin, "base64url").toString("utf8") : "/";
-  const origin = decoded.startsWith("/") ? decoded : "/";
+  const { connectionId, origin, isReconnect } = parseCallbackState(stateRaw);
   const back = (extra: Record<string, string>) => c.redirect(buildWebRedirect(origin, extra));
 
   const session = await auth.api.getSession({ headers: c.req.raw.headers });
@@ -144,24 +180,39 @@ export const callback: AppRouteHandler<CallbackRoute> = async (c) => {
 
   if (query.error) {
     const message = query.error_description ?? query.error;
-    await deleteBankConnection(db, connection.id, activeSpaceId).catch(() => undefined);
+    if (!isReconnect) {
+      await deleteBankConnection(db, connection.id, activeSpaceId).catch(() => undefined);
+    }
     return back({ bankError: message });
   }
 
+  const enableBankingCode = connection.provider === "enablebanking" ? query.code : undefined;
+
+  // Enable Banking success always includes `code`. Missing it means the user cancelled.
+  if (connection.provider === "enablebanking" && !enableBankingCode) {
+    if (!isReconnect) {
+      await deleteBankConnection(db, connection.id, activeSpaceId).catch(() => undefined);
+    }
+    return back({});
+  }
+
   try {
-    if (query.code && connection.provider === "enablebanking") {
+    if (enableBankingCode) {
       const provider = new Provider({ provider: "enablebanking" });
-      const sessionId = await provider.exchangeCode!({ code: query.code });
+      const { sessionId, expiresAt } = await provider.exchangeCode!({ code: enableBankingCode });
 
       await updateBankConnectionLink(db, connection.id, {
         accessToken: sessionId,
         referenceId: sessionId,
-        expiresAt: connection.expiresAt?.toISOString() ?? null,
+        expiresAt: expiresAt ?? connection.expiresAt?.toISOString() ?? null,
       });
     }
 
     if (connection.provider === "gocardless") {
-      const requisitionId = connection.accessToken ?? connection.referenceId;
+      const requisitionId = isReconnect
+        ? connection.referenceId
+        : (connection.accessToken ?? connection.referenceId);
+
       if (!requisitionId) {
         throw new Error("Missing GoCardless requisition id");
       }
@@ -172,14 +223,141 @@ export const callback: AppRouteHandler<CallbackRoute> = async (c) => {
       if (status !== "connected") {
         throw new Error("Bank authorization was not completed");
       }
+
+      if (isReconnect) {
+        const expiresAt = (await provider.getExpiresAt?.({ id: requisitionId })) ?? null;
+        await updateBankConnectionLink(db, connection.id, {
+          accessToken: requisitionId,
+          referenceId: requisitionId,
+          ...(expiresAt ? { expiresAt } : {}),
+        });
+      }
+    }
+
+    if (isReconnect) {
+      await updateBankConnectionStatus(db, connection.id, activeSpaceId, "connected");
+      try {
+        await tasks.trigger<typeof reconnectConnection>("reconnect-connection", {
+          connectionId: connection.id,
+        });
+      } catch (err) {
+        c.get("log").error(
+          err instanceof Error ? err : new Error("Failed to enqueue reconnect sync"),
+        );
+      }
+      return back({ bankReconnected: connection.id });
     }
 
     return back({ bankConnected: connection.id });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Failed to complete bank connection";
-    await deleteBankConnection(db, connection.id, activeSpaceId).catch(() => undefined);
+    if (!isReconnect) {
+      await deleteBankConnection(db, connection.id, activeSpaceId).catch(() => undefined);
+    }
     return back({ bankError: message });
   }
+};
+
+export const reconnectLink: AppRouteHandler<ReconnectLinkRoute> = async (c) => {
+  const user = c.get("user");
+
+  if (!user) {
+    return c.json({ error: "Unauthorized" }, HTTPStatusCodes.UNAUTHORIZED);
+  }
+
+  const activeSpaceId = await getActiveSpaceId(db, user.id);
+
+  if (!activeSpaceId) {
+    return c.json({ error: "No active space set" }, HTTPStatusCodes.BAD_REQUEST);
+  }
+
+  const { id } = c.req.valid("param");
+  const { origin } = c.req.valid("json");
+  const connection = await getBankConnectionById(db, id, activeSpaceId);
+
+  if (!connection) {
+    return c.json({ error: "Connection not found" }, HTTPStatusCodes.NOT_FOUND);
+  }
+
+  if (connection.status === "pending") {
+    return c.json(
+      { error: "Finish connecting this bank before reconnecting" },
+      HTTPStatusCodes.BAD_REQUEST,
+    );
+  }
+
+  const institution = await getInstitutionById(db, connection.institutionId);
+
+  if (!institution) {
+    return c.json({ error: "Institution not found" }, HTTPStatusCodes.BAD_REQUEST);
+  }
+
+  try {
+    const link = await startProviderAuth(institution, connection.id, origin, true);
+
+    // GoCardless callback needs the new requisition id. Live accessToken and
+    // expiresAt stay until the bank returns. Enable Banking does not touch the
+    // row until the callback exchanges `code`.
+    if (institution.provider === "gocardless") {
+      await updateBankConnectionLink(db, connection.id, {
+        referenceId: link.ref,
+      });
+    }
+
+    return c.json({ redirectUrl: link.url, connectionId: connection.id }, HTTPStatusCodes.OK);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Failed to start bank reconnect";
+    return c.json({ error: message }, HTTPStatusCodes.BAD_REQUEST);
+  }
+};
+
+export const listConnections: AppRouteHandler<ListConnectionsRoute> = async (c) => {
+  const user = c.get("user");
+
+  if (!user) {
+    return c.json({ error: "Unauthorized" }, HTTPStatusCodes.UNAUTHORIZED);
+  }
+
+  const activeSpaceId = await getActiveSpaceId(db, user.id);
+
+  if (!activeSpaceId) {
+    return c.json({ error: "No active space set" }, HTTPStatusCodes.BAD_REQUEST);
+  }
+
+  const [connections, accounts] = await Promise.all([
+    listBankConnectionsBySpace(db, activeSpaceId),
+    listBankAccountsBySpace(db, activeSpaceId),
+  ]);
+
+  const accountsByConnection = new Map<string, typeof accounts>();
+  for (const account of accounts) {
+    if (!account.bankConnectionId) continue;
+    const bucket = accountsByConnection.get(account.bankConnectionId) ?? [];
+    bucket.push(account);
+    accountsByConnection.set(account.bankConnectionId, bucket);
+  }
+
+  return c.json(
+    {
+      connections: connections.map((connection) => ({
+        id: connection.id,
+        name: connection.name,
+        logoUrl: connection.logoUrl,
+        provider: connection.provider,
+        status: connection.status === "disconnected" ? ("disconnected" as const) : ("connected" as const),
+        expiresAt: connection.expiresAt?.toISOString() ?? null,
+        lastSyncAt: connection.lastSyncAt?.toISOString() ?? null,
+        accounts: (accountsByConnection.get(connection.id) ?? []).map((account) => ({
+          id: account.id,
+          name: account.name,
+          type: account.type,
+          currency: account.currency,
+          enabled: account.enabled,
+        })),
+      })),
+    },
+    HTTPStatusCodes.OK,
+  );
 };
 
 export const listProviderAccounts: AppRouteHandler<ListProviderAccountsRoute> = async (c) => {

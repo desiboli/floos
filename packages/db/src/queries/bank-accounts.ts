@@ -43,6 +43,10 @@ export async function getBankAccountsByConnection(db: Database, bankConnectionId
   return db.select().from(bankAccounts).where(eq(bankAccounts.bankConnectionId, bankConnectionId));
 }
 
+export async function listBankAccountsBySpace(db: Database, spaceId: string) {
+  return db.select().from(bankAccounts).where(eq(bankAccounts.spaceId, spaceId));
+}
+
 export async function getEnabledBankAccountsByConnection(db: Database, bankConnectionId: string) {
   return db
     .select()
@@ -97,4 +101,39 @@ export async function updateBankAccountEnabled(
     });
 
   return result ?? null;
+}
+
+/**
+ * Rewrite provider-native account ids after reconnect.
+ * Updates by bank_accounts.id only. Parks ids first so unique(connection, accountId)
+ * cannot collide when two rows swap.
+ */
+export async function remapBankAccountProviderIds(
+  db: Database,
+  remaps: Array<{ id: string; accountId: string; iban: string | null }>,
+) {
+  if (remaps.length === 0) return;
+
+  await db.transaction(async (tx) => {
+    for (const row of remaps) {
+      await tx
+        .update(bankAccounts)
+        .set({
+          accountId: `__reconnect_${row.id}`,
+          updatedAt: sql`now()`,
+        })
+        .where(eq(bankAccounts.id, row.id));
+    }
+
+    for (const row of remaps) {
+      await tx
+        .update(bankAccounts)
+        .set({
+          accountId: row.accountId,
+          ...(row.iban ? { iban: row.iban } : {}),
+          updatedAt: sql`now()`,
+        })
+        .where(eq(bankAccounts.id, row.id));
+    }
+  });
 }

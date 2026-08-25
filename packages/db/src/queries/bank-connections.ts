@@ -1,4 +1,4 @@
-import { and, eq, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
 
 import type { Database } from "..";
 
@@ -33,17 +33,19 @@ export async function updateBankConnectionLink(
   db: Database,
   id: string,
   input: {
-    accessToken: string;
-    referenceId: string;
+    accessToken?: string;
+    referenceId?: string;
     expiresAt?: string | null;
   },
 ) {
   const [result] = await db
     .update(bankConnections)
     .set({
-      accessToken: input.accessToken,
-      referenceId: input.referenceId,
-      expiresAt: input.expiresAt ? new Date(input.expiresAt) : null,
+      ...(input.accessToken !== undefined ? { accessToken: input.accessToken } : {}),
+      ...(input.referenceId !== undefined ? { referenceId: input.referenceId } : {}),
+      ...(input.expiresAt !== undefined
+        ? { expiresAt: input.expiresAt ? new Date(input.expiresAt) : null }
+        : {}),
     })
     .where(eq(bankConnections.id, id))
     .returning();
@@ -70,6 +72,20 @@ export async function getBankConnectionByIdForSync(db: Database, id: string) {
     .limit(1);
 
   return result ?? null;
+}
+
+/** Connected and disconnected links for the settings list. Pending first-time rows are omitted. */
+export async function listBankConnectionsBySpace(db: Database, spaceId: string) {
+  return db
+    .select()
+    .from(bankConnections)
+    .where(
+      and(
+        eq(bankConnections.spaceId, spaceId),
+        inArray(bankConnections.status, ["connected", "disconnected"]),
+      ),
+    )
+    .orderBy(desc(bankConnections.createdAt));
 }
 
 /** Connected bank links for a space — used by the daily bank-sync scheduler. */

@@ -1,9 +1,14 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute } from "@tanstack/react-router";
+import { z } from "zod";
 
-export const Route = createFileRoute('/_auth/_app/settings/bank-connections')({
-  component: RouteComponent,
-})
+import { BankConnectionsPage } from "@/features/settings/bank-connections";
 
-function RouteComponent() {
-  return <div>Hello "/_auth/_app/settings/bank-connections"!</div>
-}
+const searchSchema = z.object({
+  bankReconnected: z.uuid().optional(),
+  bankError: z.string().optional(),
+});
+
+export const Route = createFileRoute("/_auth/_app/settings/bank-connections")({
+  validateSearch: searchSchema,
+  component: BankConnectionsPage,
+});

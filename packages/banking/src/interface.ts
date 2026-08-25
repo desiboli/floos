@@ -21,8 +21,10 @@ export interface BankingProvider {
   getAccountBalance(params: GetAccountBalanceRequest): Promise<GetAccountBalanceResponse>;
   getTransactions(params: GetTransactionsRequest): Promise<Transaction[]>;
   /**
-   * Enable Banking: exchange callback `code` → session_id.
+   * Enable Banking: exchange callback `code` → session id + consent expiry.
    * GoCardless does not use this (omit it on that class).
    */
-  exchangeCode?(params: { code: string }): Promise<string>;
+  exchangeCode?(params: { code: string }): Promise<{ sessionId: string; expiresAt: string | null }>;
+  /** GoCardless: consent expiry from the requisition's agreement. Enable Banking omits this. */
+  getExpiresAt?(params: { id: string }): Promise<string | null>;
 }

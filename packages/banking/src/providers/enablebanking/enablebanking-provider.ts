@@ -18,6 +18,7 @@ import { EnableBankingApi } from "./enablebanking-api";
 import {
   transformAccount,
   transformAccountBalance,
+  transformConnectionStatus,
   transformInstitution,
   transformTransaction,
 } from "./transform";
@@ -88,14 +89,27 @@ export class EnableBankingProvider implements BankingProvider {
     };
   };
 
-  exchangeCode = async ({ code }: { code: string }): Promise<string> => {
+  exchangeCode = async ({
+    code,
+  }: {
+    code: string;
+  }): Promise<{ sessionId: string; expiresAt: string | null }> => {
     const session = await this.#api.createSession(code);
-    return session.session_id;
+    return {
+      sessionId: session.session_id,
+      expiresAt: session.access?.valid_until ?? null,
+    };
   };
 
   getConnectionStatus = async ({ id }: GetConnectionStatusRequest): Promise<ConnectionStatus> => {
     if (!id) return { status: "disconnected" };
-    return { status: "connected" };
+
+    try {
+      const session = await this.#api.getSession(id);
+      return transformConnectionStatus(session);
+    } catch {
+      return { status: "disconnected" };
+    }
   };
 
   getAccounts = async ({ id }: GetAccountsRequest): Promise<Account[]> => {

@@ -3,6 +3,7 @@ import type { Database } from "@floos/db";
 import {
   touchBankConnectionLastSyncAt,
   updateBankAccountBalances,
+  updateBankConnectionStatus,
   upsertBankTransactions,
   type UpsertBankTransactionInput,
 } from "@floos/db/queries";
@@ -15,6 +16,26 @@ export type SyncConnectionResult = {
   newTransactionIds: string[];
   balancesUpdated: number;
 };
+
+const emptyResult = (connectionId: string): SyncConnectionResult => ({
+  connectionId,
+  synced: 0,
+  newTransactionIds: [],
+  balancesUpdated: 0,
+});
+
+/** Status from `Enable Banking API error (401):` / `GoCardless API error (401):`. */
+function providerStatusCode(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error);
+  if (message.startsWith("GoCardless token/")) return undefined;
+  const match = /API error \((\d{3})\)/.exec(message);
+  return match ? Number(match[1]) : undefined;
+}
+
+function isDeadConsent(error: unknown) {
+  const code = providerStatusCode(error);
+  return code === 401 || code === 403;
+}
 
 /**
  * Refresh balances, then fetch provider transactions for enabled accounts.
@@ -34,13 +55,44 @@ export async function syncConnection(
   const { connection, accounts, manualSync } = params;
   const latest = !manualSync;
   const provider = new Provider({ provider: connection.provider });
+  const sessionId = connection.accessToken ?? connection.referenceId;
+
+  if (!sessionId) {
+    logger.warn("Connection has no session id, marking disconnected", {
+      connectionId: connection.id,
+    });
+    await disconnectConnection(db, connection);
+    return emptyResult(connection.id);
+  }
+
+  const { status: providerStatus } = await provider.getConnectionStatus({ id: sessionId });
+
+  if (providerStatus === "disconnected") {
+    logger.info("Provider reports connection is not live, marking disconnected", {
+      connectionId: connection.id,
+      provider: connection.provider,
+    });
+    await disconnectConnection(db, connection);
+    return emptyResult(connection.id);
+  }
+
+  if (providerStatus !== "connected") {
+    logger.info("Provider auth is not finished, skipping sync", {
+      connectionId: connection.id,
+      providerStatus,
+    });
+    return emptyResult(connection.id);
+  }
 
   let synced = 0;
   let balancesUpdated = 0;
   const newTransactionIds: string[] = [];
+  let attemptedAccounts = 0;
+  let consentDeadAccounts = 0;
 
   for (const account of accounts) {
     if (!account.enabled) continue;
+    attemptedAccounts += 1;
 
     try {
       const snapshot = await provider.getAccountBalance({
@@ -67,6 +119,11 @@ export async function syncConnection(
         providerAccountId: account.accountId,
         error: err instanceof Error ? err.message : String(err),
       });
+
+      if (isDeadConsent(err)) {
+        consentDeadAccounts += 1;
+        continue;
+      }
     }
 
     try {
@@ -108,8 +165,28 @@ export async function syncConnection(
         providerAccountId: account.accountId,
         error: err instanceof Error ? err.message : String(err),
       });
+
+      if (isDeadConsent(err)) {
+        consentDeadAccounts += 1;
+        continue;
+      }
+
       throw err;
     }
+  }
+
+  if (attemptedAccounts > 0 && consentDeadAccounts === attemptedAccounts) {
+    logger.info("All enabled accounts failed with a dead consent, marking disconnected", {
+      connectionId: connection.id,
+      attemptedAccounts,
+    });
+    await disconnectConnection(db, connection);
+    return {
+      connectionId: connection.id,
+      synced,
+      newTransactionIds,
+      balancesUpdated,
+    };
   }
 
   await touchBankConnectionLastSyncAt(db, connection.id);
@@ -120,4 +197,8 @@ export async function syncConnection(
     newTransactionIds,
     balancesUpdated,
   };
+}
+
+async function disconnectConnection(db: Database, connection: BankConnection) {
+  await updateBankConnectionStatus(db, connection.id, connection.spaceId, "disconnected");
 }

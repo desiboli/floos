@@ -96,6 +96,11 @@ export class GoCardlessApi {
     return this.#request<Requisition>(`/api/v2/requisitions/${id}/`);
   };
 
+  /** GET /api/v2/agreements/enduser/{id}/ */
+  getEndUserAgreement = async (id: string): Promise<EndUserAgreement> => {
+    return this.#request<EndUserAgreement>(`/api/v2/agreements/enduser/${id}/`);
+  };
+
   /** GET /api/v2/institutions/{id}/ */
   getInstitution = async (id: string): Promise<GCInstitution> => {
     return this.#request<GCInstitution>(`/api/v2/institutions/${id}/`);

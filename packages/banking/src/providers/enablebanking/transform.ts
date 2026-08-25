@@ -3,11 +3,12 @@ import { createHash } from "node:crypto";
 import type {
   Account,
   AccountType,
+  ConnectionStatus,
   GetAccountBalanceResponse,
   Institution,
   Transaction,
 } from "../../types";
-import type { EBAccount, EBAspsp, EBBalance, EBTransaction } from "./types";
+import type { EBAccount, EBAspsp, EBBalance, EBSessionStatus, EBTransaction } from "./types";
 
 /**
  * Stable catalog id. Enable Banking ASPSPs have no UUID.
@@ -18,6 +19,10 @@ const toInstitutionId = (name: string, country: string, psuType?: string) => {
   if (!psuType) return base;
   return `${base}_${psuType.toUpperCase()}`;
 };
+
+export const transformConnectionStatus = (session: EBSessionStatus): ConnectionStatus => ({
+  status: session.status === "AUTHORIZED" ? "connected" : "disconnected",
+});
 
 export const transformInstitution = (aspsp: EBAspsp, psuType?: string): Institution => ({
   id: toInstitutionId(aspsp.name, aspsp.country, psuType),

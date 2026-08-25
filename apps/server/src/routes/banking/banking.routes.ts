@@ -5,6 +5,8 @@ import jsonContent from "../../openapi/helpers/json-content";
 
 const tags = ["Banking"];
 
+export const accountTypeSchema = z.enum(["depository", "credit", "loan", "investment", "other"]);
+
 export const createLinkSchema = z.object({
   institutionId: z.string().min(1).openapi({
     example: "SANDBOXFINANCE_SFIN0000",
@@ -18,6 +20,11 @@ export const createLinkSchema = z.object({
 export const createLinkResponseSchema = z.object({
   redirectUrl: z.url(),
   connectionId: z.uuid(),
+});
+
+export const syncConnectionResponseSchema = z.object({
+  queued: z.literal(true),
+  runId: z.string(),
 });
 
 export const createLink = createRoute({
@@ -46,6 +53,80 @@ export const createLink = createRoute({
 
 export type CreateLinkRoute = typeof createLink;
 
+export const reconnectLinkSchema = z.object({
+  /** App path to return to after bank auth (must start with "/"). */
+  origin: z.string().startsWith("/").openapi({
+    example: "/settings/bank-connections",
+  }),
+});
+
+export const reconnectLink = createRoute({
+  tags,
+  path: "/banking/connections/{id}/reconnect",
+  method: "post",
+  summary: "Start a reconnect flow for an existing bank connection",
+  request: {
+    params: z.object({
+      id: z.uuid(),
+    }),
+    body: {
+      ...jsonContent(reconnectLinkSchema, "Return path after bank auth"),
+      required: true,
+    },
+  },
+  responses: {
+    [HTTPStatusCodes.OK]: jsonContent(
+      createLinkResponseSchema,
+      "Provider auth URL; same connection id",
+    ),
+    [HTTPStatusCodes.BAD_REQUEST]: jsonContent(
+      z.object({ error: z.string() }),
+      "Invalid request or connection not ready to reconnect",
+    ),
+    [HTTPStatusCodes.UNAUTHORIZED]: jsonContent(z.object({ error: z.string() }), "Unauthorized"),
+    [HTTPStatusCodes.NOT_FOUND]: jsonContent(z.object({ error: z.string() }), "Connection not found"),
+  },
+});
+
+export type ReconnectLinkRoute = typeof reconnectLink;
+
+export const connectionListAccountSchema = z.object({
+  id: z.uuid(),
+  name: z.string(),
+  type: accountTypeSchema,
+  currency: z.string(),
+  enabled: z.boolean(),
+});
+
+export const connectionListItemSchema = z.object({
+  id: z.uuid(),
+  name: z.string(),
+  logoUrl: z.string().nullable(),
+  provider: z.enum(["gocardless", "enablebanking"]),
+  status: z.enum(["connected", "disconnected"]),
+  expiresAt: z.string().nullable(),
+  lastSyncAt: z.string().nullable(),
+  accounts: z.array(connectionListAccountSchema),
+});
+
+export const listConnectionsResponseSchema = z.object({
+  connections: z.array(connectionListItemSchema),
+});
+
+export const listConnections = createRoute({
+  tags,
+  path: "/banking/connections",
+  method: "get",
+  summary: "List bank connections for the active space",
+  responses: {
+    [HTTPStatusCodes.OK]: jsonContent(listConnectionsResponseSchema, "Bank connections"),
+    [HTTPStatusCodes.BAD_REQUEST]: jsonContent(z.object({ error: z.string() }), "No active space"),
+    [HTTPStatusCodes.UNAUTHORIZED]: jsonContent(z.object({ error: z.string() }), "Unauthorized"),
+  },
+});
+
+export type ListConnectionsRoute = typeof listConnections;
+
 export const callback = createRoute({
   tags,
   path: "/banking/callback",
@@ -70,8 +151,6 @@ export const callback = createRoute({
 });
 
 export type CallbackRoute = typeof callback;
-
-export const accountTypeSchema = z.enum(["depository", "credit", "loan", "investment", "other"]);
 
 export const providerAccountSchema = z.object({
   providerAccountId: z.string(),
@@ -160,11 +239,6 @@ export const commitAccounts = createRoute({
 });
 
 export type CommitAccountsRoute = typeof commitAccounts;
-
-export const syncConnectionResponseSchema = z.object({
-  queued: z.literal(true),
-  runId: z.string(),
-});
 
 export const syncConnection = createRoute({
   tags,

@@ -61,6 +61,19 @@ export class GoCardlessProvider implements BankingProvider {
     };
   };
 
+  getExpiresAt = async ({ id }: { id: string }): Promise<string | null> => {
+    try {
+      const requisition = await this.#api.getRequisition(id);
+      if (!requisition.agreement) return null;
+      const agreement = await this.#api.getEndUserAgreement(requisition.agreement);
+      return new Date(
+        Date.now() + agreement.access_valid_for_days * 24 * 60 * 60 * 1000,
+      ).toISOString();
+    } catch {
+      return null;
+    }
+  };
+
   getConnectionStatus = async ({ id }: GetConnectionStatusRequest): Promise<ConnectionStatus> => {
     try {
       const requisition = await this.#api.getRequisition(id);

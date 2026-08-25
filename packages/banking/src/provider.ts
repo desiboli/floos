@@ -44,10 +44,17 @@ export class Provider implements BankingProvider {
   getTransactions: BankingProvider["getTransactions"] = (params) =>
     this.#provider.getTransactions(params);
 
-  exchangeCode: BankingProvider["exchangeCode"] = (params) => {
+  exchangeCode = (params: { code: string }) => {
     if (!this.#provider.exchangeCode) {
       throw new Error("exchangeCode is not supported for this provider");
     }
     return this.#provider.exchangeCode(params);
+  };
+
+  getExpiresAt = (params: { id: string }): Promise<string | null> => {
+    if (!this.#provider.getExpiresAt) {
+      return Promise.resolve(null);
+    }
+    return this.#provider.getExpiresAt(params);
   };
 }

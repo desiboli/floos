@@ -6,7 +6,9 @@ import type {
   ConnectionTransactionsResult,
   CreateBankLinkInput,
   CreateBankLinkResult,
+  ListConnectionsResult,
   ProviderAccountsResult,
+  ReconnectLinkResult,
   SyncConnectionResult,
   ToggleBankAccountResult,
 } from "./types";
@@ -17,6 +19,34 @@ export async function createBankLink(input: CreateBankLinkInput): Promise<Create
   if (!res.ok) {
     const body = (await res.json().catch(() => null)) as { error?: string } | null;
     throw new Error(body?.error ?? "Failed to start bank connection");
+  }
+
+  return res.json();
+}
+
+export async function listBankConnections(): Promise<ListConnectionsResult> {
+  const res = await api.banking.connections.$get();
+
+  if (!res.ok) {
+    const body = (await res.json().catch(() => null)) as { error?: string } | null;
+    throw new Error(body?.error ?? "Failed to load bank connections");
+  }
+
+  return res.json();
+}
+
+export async function startBankReconnect(
+  connectionId: string,
+  origin: string,
+): Promise<ReconnectLinkResult> {
+  const res = await api.banking.connections[":id"].reconnect.$post({
+    param: { id: connectionId },
+    json: { origin },
+  });
+
+  if (!res.ok) {
+    const body = (await res.json().catch(() => null)) as { error?: string } | null;
+    throw new Error(body?.error ?? "Failed to start bank reconnect");
   }
 
   return res.json();

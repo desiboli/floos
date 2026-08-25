@@ -35,3 +35,11 @@ export type SyncConnectionResult = InferResponseType<
   (typeof api.banking.connections)[":id"]["sync"]["$post"],
   202
 >;
+
+export type ListConnectionsResult = InferResponseType<typeof api.banking.connections.$get, 200>;
+export type BankConnectionListItem = ListConnectionsResult["connections"][number];
+
+export type ReconnectLinkResult = InferResponseType<
+  (typeof api.banking.connections)[":id"]["reconnect"]["$post"],
+  200
+>;
