@@ -16,6 +16,7 @@ export type {
   AccountType,
   Account,
   GetAccountsRequest,
+  DeleteConnectionRequest,
   GetAccountBalanceRequest,
   GetAccountBalanceResponse,
   Transaction,

@@ -86,6 +86,11 @@ export type GetAccountsRequest = {
   id: string;
 };
 
+export type DeleteConnectionRequest = {
+  /** GC requisition id or EB session id. */
+  id: string;
+};
+
 export type GetAccountBalanceRequest = {
   /** Provider-native account id (bank_accounts.account_id). */
   accountId: string;

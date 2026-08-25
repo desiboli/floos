@@ -4,6 +4,7 @@ import type {
   ConnectionStatus,
   CreateLinkRequest,
   CreateLinkResponse,
+  DeleteConnectionRequest,
   GetAccountBalanceRequest,
   GetAccountBalanceResponse,
   GetAccountsRequest,
@@ -131,6 +132,10 @@ export class GoCardlessProvider implements BankingProvider {
   }: GetAccountBalanceRequest): Promise<GetAccountBalanceResponse> => {
     const balancesRes = await this.#api.getAccountBalances(accountId);
     return transformAccountBalance(balancesRes.balances ?? [], currency);
+  };
+
+  deleteConnection = async ({ id }: DeleteConnectionRequest): Promise<void> => {
+    await this.#api.deleteRequisition(id);
   };
 
   getTransactions = async ({

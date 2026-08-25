@@ -19,7 +19,11 @@ import {
   updateBankConnectionStatus,
 } from "@floos/db/queries";
 import { env } from "@floos/env/server";
-import type { reconnectConnection, syncConnectionTransactions } from "@floos/jobs";
+import type {
+  deleteConnection as deleteConnectionTask,
+  reconnectConnection,
+  syncConnectionTransactions,
+} from "@floos/jobs";
 import { generateCronTag } from "@floos/jobs/generate-cron-tag";
 import { schedules, tasks } from "@trigger.dev/sdk";
 
@@ -28,6 +32,7 @@ import type {
   CallbackRoute,
   CommitAccountsRoute,
   CreateLinkRoute,
+  DeleteConnectionRoute,
   ListConnectionTransactionsRoute,
   ListConnectionsRoute,
   ListProviderAccountsRoute,
@@ -309,6 +314,50 @@ export const reconnectLink: AppRouteHandler<ReconnectLinkRoute> = async (c) => {
     const message = err instanceof Error ? err.message : "Failed to start bank reconnect";
     return c.json({ error: message }, HTTPStatusCodes.BAD_REQUEST);
   }
+};
+
+export const deleteConnection: AppRouteHandler<DeleteConnectionRoute> = async (c) => {
+  const user = c.get("user");
+
+  if (!user) {
+    return c.json({ error: "Unauthorized" }, HTTPStatusCodes.UNAUTHORIZED);
+  }
+
+  const activeSpaceId = await getActiveSpaceId(db, user.id);
+
+  if (!activeSpaceId) {
+    return c.json({ error: "No active space set" }, HTTPStatusCodes.BAD_REQUEST);
+  }
+
+  const { id } = c.req.valid("param");
+  const connection = await getBankConnectionById(db, id, activeSpaceId);
+
+  if (!connection) {
+    return c.json({ error: "Connection not found" }, HTTPStatusCodes.NOT_FOUND);
+  }
+
+  const sessionId = connection.accessToken ?? connection.referenceId;
+  const { provider } = connection;
+
+  await deleteBankConnection(db, id, activeSpaceId);
+
+  let queued = false;
+
+  if (sessionId) {
+    try {
+      await tasks.trigger<typeof deleteConnectionTask>("delete-connection", {
+        provider,
+        sessionId,
+      });
+      queued = true;
+    } catch (err) {
+      c.get("log").error(
+        err instanceof Error ? err : new Error("Failed to enqueue connection revoke"),
+      );
+    }
+  }
+
+  return c.json({ id: connection.id, queued }, HTTPStatusCodes.OK);
 };
 
 export const listConnections: AppRouteHandler<ListConnectionsRoute> = async (c) => {

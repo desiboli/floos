@@ -6,6 +6,7 @@ import type {
   ConnectionTransactionsResult,
   CreateBankLinkInput,
   CreateBankLinkResult,
+  DeleteBankConnectionResult,
   ListConnectionsResult,
   ProviderAccountsResult,
   ReconnectLinkResult,
@@ -47,6 +48,19 @@ export async function startBankReconnect(
   if (!res.ok) {
     const body = (await res.json().catch(() => null)) as { error?: string } | null;
     throw new Error(body?.error ?? "Failed to start bank reconnect");
+  }
+
+  return res.json();
+}
+
+export async function deleteBankConnection(id: string): Promise<DeleteBankConnectionResult> {
+  const res = await api.banking.connections[":id"].$delete({
+    param: { id },
+  });
+
+  if (!res.ok) {
+    const body = (await res.json().catch(() => null)) as { error?: string } | null;
+    throw new Error(body?.error ?? "Failed to delete bank connection");
   }
 
   return res.json();

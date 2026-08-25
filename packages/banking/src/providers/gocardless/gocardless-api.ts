@@ -96,6 +96,11 @@ export class GoCardlessApi {
     return this.#request<Requisition>(`/api/v2/requisitions/${id}/`);
   };
 
+  /** DELETE /api/v2/requisitions/{id}/ — revoke the end-user consent. */
+  deleteRequisition = async (id: string): Promise<void> => {
+    await this.#request<void>(`/api/v2/requisitions/${id}/`, { method: "DELETE" });
+  };
+
   /** GET /api/v2/agreements/enduser/{id}/ */
   getEndUserAgreement = async (id: string): Promise<EndUserAgreement> => {
     return this.#request<EndUserAgreement>(`/api/v2/agreements/enduser/${id}/`);
@@ -155,12 +160,17 @@ export class GoCardlessApi {
       },
     });
 
+    const text = await res.text();
+
     if (!res.ok) {
-      const body = await res.text();
-      throw new Error(`GoCardless API error (${res.status}): ${body}`);
+      throw new Error(`GoCardless API error (${res.status}): ${text}`);
     }
 
-    return res.json() as Promise<T>;
+    if (!text.trim()) {
+      return undefined as T;
+    }
+
+    return JSON.parse(text) as T;
   };
 
   #createNewToken = async (): Promise<string> => {

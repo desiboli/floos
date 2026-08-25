@@ -43,3 +43,8 @@ export type ReconnectLinkResult = InferResponseType<
   (typeof api.banking.connections)[":id"]["reconnect"]["$post"],
   200
 >;
+
+export type DeleteBankConnectionResult = InferResponseType<
+  (typeof api.banking.connections)[":id"]["$delete"],
+  200
+>;

@@ -56,12 +56,17 @@ export class EnableBankingApi {
       },
     });
 
+    const text = await res.text();
+
     if (!res.ok) {
-      const body = await res.text();
-      throw new Error(`Enable Banking API error (${res.status}): ${body}`);
+      throw new Error(`Enable Banking API error (${res.status}): ${text}`);
     }
 
-    return res.json() as Promise<T>;
+    if (!text.trim()) {
+      return undefined as T;
+    }
+
+    return JSON.parse(text) as T;
   };
 
   /** GET /aspsps — omit country for the full catalog (seed). */
@@ -111,6 +116,11 @@ export class EnableBankingApi {
   /** GET /sessions/{id} */
   getSession = async (sessionId: string): Promise<EBSessionStatus> => {
     return this.#request<EBSessionStatus>(`/sessions/${sessionId}`);
+  };
+
+  /** DELETE /sessions/{id} — revoke the AIS session. */
+  deleteSession = async (sessionId: string): Promise<void> => {
+    await this.#request<void>(`/sessions/${sessionId}`, { method: "DELETE" });
   };
 
   /** GET /accounts/{id}/details */

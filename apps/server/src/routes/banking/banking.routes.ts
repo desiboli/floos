@@ -90,6 +90,34 @@ export const reconnectLink = createRoute({
 
 export type ReconnectLinkRoute = typeof reconnectLink;
 
+export const deleteConnectionResponseSchema = z.object({
+  id: z.uuid(),
+  queued: z.boolean(),
+});
+
+export const deleteConnection = createRoute({
+  tags,
+  path: "/banking/connections/{id}",
+  method: "delete",
+  summary: "Delete a bank connection and revoke provider consent in the background",
+  request: {
+    params: z.object({
+      id: z.uuid(),
+    }),
+  },
+  responses: {
+    [HTTPStatusCodes.OK]: jsonContent(
+      deleteConnectionResponseSchema,
+      "Connection removed; provider revoke may be queued",
+    ),
+    [HTTPStatusCodes.BAD_REQUEST]: jsonContent(z.object({ error: z.string() }), "No active space"),
+    [HTTPStatusCodes.UNAUTHORIZED]: jsonContent(z.object({ error: z.string() }), "Unauthorized"),
+    [HTTPStatusCodes.NOT_FOUND]: jsonContent(z.object({ error: z.string() }), "Connection not found"),
+  },
+});
+
+export type DeleteConnectionRoute = typeof deleteConnection;
+
 export const connectionListAccountSchema = z.object({
   id: z.uuid(),
   name: z.string(),

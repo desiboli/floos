@@ -17,6 +17,8 @@ import {
 import { providerLabel } from "@/features/banking/services/api";
 import type { BankConnectionListItem } from "@/features/banking/services/types";
 
+import { DeleteBankConnectionDialog } from "./delete-bank-connection-dialog";
+
 function statusBadge(health: ConnectionHealth) {
   if (health.kind === "disconnected") {
     return { label: "Disconnected", variant: "destructive" as const };
@@ -91,6 +93,7 @@ export function BankConnectionHeader({
             {reconnectPending ? <Icons.loader className="size-4 animate-spin" /> : "Reconnect"}
           </Button>
         ) : null}
+        <DeleteBankConnectionDialog connection={connection} />
       </ItemActions>
     </Item>
   );

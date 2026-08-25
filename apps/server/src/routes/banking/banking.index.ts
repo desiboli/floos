@@ -5,6 +5,7 @@ import * as routes from "./banking.routes";
 const router = createRouter()
   .openapi(routes.createLink, handlers.createLink)
   .openapi(routes.reconnectLink, handlers.reconnectLink)
+  .openapi(routes.deleteConnection, handlers.deleteConnection)
   .openapi(routes.listConnections, handlers.listConnections)
   .openapi(routes.listProviderAccounts, handlers.listProviderAccounts)
   .openapi(routes.commitAccounts, handlers.commitAccounts)

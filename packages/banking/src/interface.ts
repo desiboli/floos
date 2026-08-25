@@ -3,6 +3,7 @@ import type {
   ConnectionStatus,
   CreateLinkRequest,
   CreateLinkResponse,
+  DeleteConnectionRequest,
   GetAccountBalanceRequest,
   GetAccountBalanceResponse,
   GetAccountsRequest,
@@ -20,6 +21,8 @@ export interface BankingProvider {
   getAccounts(params: GetAccountsRequest): Promise<Account[]>;
   getAccountBalance(params: GetAccountBalanceRequest): Promise<GetAccountBalanceResponse>;
   getTransactions(params: GetTransactionsRequest): Promise<Transaction[]>;
+  /** Revoke the open-banking consent (GC requisition or EB session). */
+  deleteConnection(params: DeleteConnectionRequest): Promise<void>;
   /**
    * Enable Banking: exchange callback `code` → session id + consent expiry.
    * GoCardless does not use this (omit it on that class).

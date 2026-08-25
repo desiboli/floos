@@ -4,6 +4,7 @@ import type {
   ConnectionStatus,
   CreateLinkRequest,
   CreateLinkResponse,
+  DeleteConnectionRequest,
   GetAccountBalanceRequest,
   GetAccountBalanceResponse,
   GetAccountsRequest,
@@ -137,6 +138,10 @@ export class EnableBankingProvider implements BankingProvider {
         });
       }),
     );
+  };
+
+  deleteConnection = async ({ id }: DeleteConnectionRequest): Promise<void> => {
+    await this.#api.deleteSession(id);
   };
 
   getAccountBalance = async ({
