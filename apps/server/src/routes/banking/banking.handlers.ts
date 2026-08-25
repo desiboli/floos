@@ -347,13 +347,17 @@ export const listConnections: AppRouteHandler<ListConnectionsRoute> = async (c) 
         status: connection.status === "disconnected" ? ("disconnected" as const) : ("connected" as const),
         expiresAt: connection.expiresAt?.toISOString() ?? null,
         lastSyncAt: connection.lastSyncAt?.toISOString() ?? null,
-        accounts: (accountsByConnection.get(connection.id) ?? []).map((account) => ({
-          id: account.id,
-          name: account.name,
-          type: account.type,
-          currency: account.currency,
-          enabled: account.enabled,
-        })),
+        accounts: (accountsByConnection.get(connection.id) ?? []).map((account) => {
+          const balance = Number(account.balance);
+          return {
+            id: account.id,
+            name: account.name,
+            type: account.type,
+            currency: account.currency,
+            balance: Number.isFinite(balance) ? balance : 0,
+            enabled: account.enabled,
+          };
+        }),
       })),
     },
     HTTPStatusCodes.OK,

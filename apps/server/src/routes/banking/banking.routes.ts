@@ -95,6 +95,7 @@ export const connectionListAccountSchema = z.object({
   name: z.string(),
   type: accountTypeSchema,
   currency: z.string(),
+  balance: z.number(),
   enabled: z.boolean(),
 });
 
