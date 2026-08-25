@@ -10,6 +10,7 @@ import {
   IconLayoutDashboard,
   IconLoader,
   IconShieldLock,
+  IconTrendingUp,
   IconLogout2,
   IconTransactionDollar,
   IconLayoutSidebar,
@@ -66,6 +67,7 @@ export const Icons = {
   plugConnected: IconPlugConnected,
   trash: IconTrash,
   eyeOff: IconEyeOff,
+  trendingUp: IconTrendingUp,
   google: (props: IconProps) => (
     <svg
       viewBox="-0.5 0 48 48"
