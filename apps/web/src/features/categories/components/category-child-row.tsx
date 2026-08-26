@@ -26,6 +26,9 @@ export function CategoryChildRow({
       <TableCell className="max-w-md truncate text-muted-foreground">
         {category.description ?? ""}
       </TableCell>
+      <TableCell className="text-right tabular-nums text-muted-foreground">
+        {category.transactionCount.toLocaleString()}
+      </TableCell>
       <TableCell>
         <CategoryRowActions
           category={category}

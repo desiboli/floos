@@ -17,11 +17,15 @@ export function CategoryGroupRows({
   onDelete: (category: CategoryRecord) => void;
 }) {
   const { children, ...parentRecord } = parent;
+  const transactionCount =
+    parentRecord.transactionCount +
+    children.reduce((sum, child) => sum + child.transactionCount, 0);
 
   return (
     <>
       <CategoryParentRow
         category={parentRecord}
+        transactionCount={transactionCount}
         expanded={expanded}
         onToggle={onToggle}
         onEdit={onEdit}

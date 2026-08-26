@@ -10,17 +10,19 @@ import { SystemBadge } from "./system-badge";
 
 export function CategoryParentRow({
   category,
+  transactionCount,
   expanded,
   onToggle,
   onEdit,
 }: {
   category: CategoryRecord;
+  transactionCount: number;
   expanded: boolean;
   onToggle: () => void;
   onEdit: (category: CategoryRecord) => void;
 }) {
   return (
-    <TableRow className="has-aria-expanded:bg-transparent">
+    <TableRow className="has-aria-expanded:bg-transparent has-aria-expanded:hover:bg-muted/50">
       <TableCell>
         <div className="flex min-h-9 items-center gap-1">
           <button
@@ -40,6 +42,9 @@ export function CategoryParentRow({
       </TableCell>
       <TableCell className="max-w-md truncate text-muted-foreground">
         {category.description ?? ""}
+      </TableCell>
+      <TableCell className="text-right tabular-nums text-muted-foreground">
+        {transactionCount.toLocaleString()}
       </TableCell>
       <TableCell>
         <CategoryRowActions category={category} onEdit={onEdit} />

@@ -1,10 +1,4 @@
-import {
-  Table,
-  TableBody,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@floos/ui/components/table";
+import { Table, TableBody, TableHead, TableHeader, TableRow } from "@floos/ui/components/table";
 import { TooltipProvider } from "@floos/ui/components/tooltip";
 
 import type { CategoryRecord, CategoryTree } from "../services/types";
@@ -31,9 +25,10 @@ export function CategoriesTable({
       <div className="overflow-hidden rounded-md border">
         <Table>
           <TableHeader>
-            <TableRow>
+            <TableRow className="hover:bg-transparent">
               <TableHead>Name</TableHead>
               <TableHead>Description</TableHead>
+              <TableHead className="w-32 text-right">Transactions</TableHead>
               <TableHead className="w-12">
                 <span className="sr-only">Actions</span>
               </TableHead>
