@@ -13,6 +13,8 @@ export const env = createEnv({
     GOOGLE_CLIENT_ID: z.string().min(1),
     GOOGLE_CLIENT_SECRET: z.string().min(1),
     GOOGLE_GENERATIVE_AI_API_KEY: z.string().min(1),
+    // OpenRouter — Floos AI chat agent (jobs + server load apps/server/.env)
+    OPENROUTER_API_KEY: z.string().min(1),
     CORS_ORIGIN: z.url(),
     NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
     // Resend (invite emails). Set in apps/server/.env — jobs load that file.

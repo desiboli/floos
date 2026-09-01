@@ -55,6 +55,30 @@ export async function listBankAccountsBySpace(db: Database, spaceId: string) {
     .orderBy(asc(bankAccounts.createdAt), asc(bankAccounts.id));
 }
 
+/** Safe projection for the agent: never iban, bic, or provider accountId. */
+export async function listEnabledBankAccountSummaries(db: Database, spaceId: string) {
+  return db
+    .select({
+      id: bankAccounts.id,
+      name: bankAccounts.name,
+      type: bankAccounts.type,
+      currency: bankAccounts.currency,
+      balance: bankAccounts.balance,
+    })
+    .from(bankAccounts)
+    .where(and(eq(bankAccounts.spaceId, spaceId), eq(bankAccounts.enabled, true)))
+    .orderBy(asc(bankAccounts.createdAt), asc(bankAccounts.id));
+}
+
+export async function hasEnabledBankAccounts(db: Database, spaceId: string) {
+  const [row] = await db
+    .select({ id: bankAccounts.id })
+    .from(bankAccounts)
+    .where(and(eq(bankAccounts.spaceId, spaceId), eq(bankAccounts.enabled, true)))
+    .limit(1);
+  return row != null;
+}
+
 export async function getEnabledBankAccountsByConnection(db: Database, bankConnectionId: string) {
   return db
     .select()

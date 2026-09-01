@@ -8,6 +8,8 @@ export const relations = defineRelations(schema, (r) => ({
     accounts: r.many.account(),
     spaceMembers: r.many.spaceMembers(),
     sentInvites: r.many.spaceInvites(),
+    aiChats: r.many.aiChats(),
+    aiRateLimits: r.many.aiRateLimits(),
     activeSpace: r.one.spaces({
       from: r.user.activeSpaceId,
       to: r.spaces.id,
@@ -35,6 +37,7 @@ export const relations = defineRelations(schema, (r) => ({
     bankAccounts: r.many.bankAccounts(),
     bankTransactions: r.many.bankTransactions(),
     transactionCategories: r.many.transactionCategories(),
+    aiChats: r.many.aiChats(),
   },
   spaceInvites: {
     space: r.one.spaces({
@@ -90,6 +93,33 @@ export const relations = defineRelations(schema, (r) => ({
     account: r.one.bankAccounts({
       from: r.bankTransactions.bankAccountId,
       to: r.bankAccounts.id,
+      optional: false,
+    }),
+  },
+  aiChats: {
+    space: r.one.spaces({
+      from: r.aiChats.spaceId,
+      to: r.spaces.id,
+      optional: false,
+    }),
+    user: r.one.user({
+      from: r.aiChats.userId,
+      to: r.user.id,
+      optional: false,
+    }),
+    messages: r.many.aiMessages(),
+  },
+  aiMessages: {
+    chat: r.one.aiChats({
+      from: r.aiMessages.chatId,
+      to: r.aiChats.id,
+      optional: false,
+    }),
+  },
+  aiRateLimits: {
+    user: r.one.user({
+      from: r.aiRateLimits.userId,
+      to: r.user.id,
       optional: false,
     }),
   },

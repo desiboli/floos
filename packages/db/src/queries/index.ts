@@ -6,3 +6,5 @@ export * from "./bank-accounts";
 export * from "./bank-transactions";
 export * from "./transaction-categories";
 export * from "./transaction-enrichment";
+export * from "./ai-chats";
+export * from "./ai-rate-limits";

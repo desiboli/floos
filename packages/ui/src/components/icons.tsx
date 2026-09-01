@@ -1,5 +1,6 @@
 import {
   IconAlertTriangle,
+  IconArrowLeft,
   IconArrowRight,
   IconArrowUp,
   IconArrowsSort,
@@ -22,6 +23,7 @@ import {
   IconMoonStars,
   IconPalette,
   IconPaperclip,
+  IconPlayerStop,
   IconPlus,
   IconPlugConnected,
   IconRefresh,
@@ -44,6 +46,7 @@ type IconProps = React.HTMLAttributes<SVGElement>;
 export const Icons = {
   sparkles: IconSparkles,
   alertTriangle: IconAlertTriangle,
+  arrowLeft: IconArrowLeft,
   arrowRight: IconArrowRight,
   arrowsSort: IconArrowsSort,
   arrowsSortDown: IconSortDescending,
@@ -68,6 +71,7 @@ export const Icons = {
   transactionDollar: IconTransactionDollar,
   palette: IconPalette,
   paperclip: IconPaperclip,
+  playerStop: IconPlayerStop,
   plus: IconPlus,
   refresh: IconRefresh,
   search: IconSearch,

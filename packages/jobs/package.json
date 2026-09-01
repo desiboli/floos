@@ -18,10 +18,13 @@
   },
   "dependencies": {
     "@ai-sdk/google": "^4.0.44",
+    "@ai-sdk/otel": "^1.0.79",
+    "@floos/ai": "workspace:*",
     "@floos/banking": "workspace:*",
     "@floos/categories": "workspace:*",
     "@floos/db": "workspace:*",
     "@floos/env": "workspace:*",
+    "@openrouter/ai-sdk-provider": "^3.0.0",
     "@trigger.dev/sdk": "^4.5.12",
     "ai": "^7.0.66",
     "dotenv": "catalog:",

@@ -1,0 +1,30 @@
+{
+  "name": "@floos/ai",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "default": "./src/index.ts"
+    },
+    "./context": {
+      "default": "./src/context.ts"
+    },
+    "./tools": {
+      "default": "./src/tools/index.ts"
+    }
+  },
+  "scripts": {
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@floos/db": "workspace:*",
+    "ai": "^7.0.66",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@floos/config": "workspace:*",
+    "@types/bun": "catalog:",
+    "typescript": "^6.0.3"
+  }
+}
